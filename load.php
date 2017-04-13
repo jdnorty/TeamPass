@@ -41,7 +41,9 @@ $htmlHeaders = '
 
 
         <script type="text/javascript" src="includes/libraries/Authentication/agses/agses.jquery.js"></script>
-        <link rel="stylesheet" href="includes/libraries/Authentication/agses/agses.css" type="text/css" />';
+        <link rel="stylesheet" href="includes/libraries/Authentication/agses/agses.css" type="text/css" />
+
+        <script type="text/javascript" src="includes/js/u2f/u2f-api.js"></script>';
 // For ITEMS page, load specific CSS files for treeview
 if (isset($_GET['page']) && $_GET['page'] == "items") {
     $htmlHeaders .= '
@@ -147,7 +149,7 @@ $htmlHeaders .= '
     }
 
 
-    function launchIdentify(isDuo, redirect, psk)
+    function launchIdentify(startOption, redirect, psk)
     {
         $("#connection_error").hide();
         if (redirect == undefined) redirect = ""; //Check if redirection
@@ -189,7 +191,7 @@ $htmlHeaders .= '
         data = \'{"login":"\'+sanitizeString($("#login").val())+\'" , "pw":"\'+sanitizeString($("#pw").val())+\'" , "duree_session":"\'+$("#duree_session").val()+\'" , "screenHeight":"\'+$("body").innerHeight()+\'" , "randomstring":"\'+randomstring+\'" , "TimezoneOffset":"\'+TimezoneOffset+\'"\'+data+\'}\';
 
         // Handle if DUOSecurity is enabled
-        if (isDuo == 0 || (isDuo == 1 && $("#login").val() == "admin")) {
+        if (startOption === "" || (startOption === "duo" && $("#login").val() == "admin")) {
             identifyUser(redirect, psk, data, randomstring);
         } else {
             $("#duo_data").val(data);
@@ -259,6 +261,8 @@ $htmlHeaders .= '
                     $("#2fa_new_code_div").html(data[0].value+"<br />'.addslashes($LANG['ga_flash_qr_and_login']).'").show();
                 } else if (data[0].value === "install_error") {
                     $("#connection_error").html(data[0].error).show();
+                } else if (data[0].value === "u2f_ask_for_registration") {
+                    $("#user_u2f_info_div").html("Touch your U2F key to register it.").show();
                 } else {
                     $("#connection_error").html("'.addslashes($LANG['error_bad_credentials']).'").show();
                 }

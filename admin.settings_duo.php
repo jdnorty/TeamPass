@@ -108,6 +108,7 @@ td {
 .google_enabled { ', isset($_SESSION['settings']['google_authentication']) && $_SESSION['settings']['google_authentication'] == 1 ? '' : 'display:none;', ' }
 .duo_enabled { ', isset($_SESSION['settings']['duo']) && $_SESSION['settings']['duo'] == 1 ? '' : 'display:none;', ' }
 .agses_enabled { ', isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['settings']['agses_authentication_enabled'] == 1 ? '' : 'display:none;', ' }
+.u2f_enabled { ', isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1 ? '' : 'display:none;', ' }
 </style>
 </head><body>';
 
@@ -326,6 +327,27 @@ echo '
       </td>
     </tr>
 
+    <tr>
+      <td colspan="2"><hr />
+      </td>
+    </tr>
+
+<!-- // FIDOU2F toggle -->
+    <tr>
+      <td>
+        <label for="u2f">
+          <i class="fa fa-chevron-right mi-grey-1"></i>
+          '.$LANG['settings_u2f'].'
+          <i class="fa fa-question-circle tip" title="'.htmlentities(strip_tags($LANG['settings_u2f_tip']), ENT_QUOTES).'"></i>
+        </label>
+      </td>
+      <td>
+        <div class="toggle toggle-modern" id="u2f" data-toggle-on="', isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1 ? 'true' : 'false', '">
+        </div>
+        <input type="hidden" id="u2f_input" name="u2f_input" value="', isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1 ? '1' : '0', '" />
+      </td>
+    </tr>
+
   </tbody></table>
 </div>';
 
@@ -496,11 +518,13 @@ $(function() {
             if(e.target.id == "duo") $(".duo_enabled").show();
             if(e.target.id == "google_authentication") $(".google_enabled").show();
             if(e.target.id == "agses_authentication_enabled") $(".agses_enabled").show();
+            //if(e.target.id == "u2f") $(".u2f_enabled").show();
         } else {
             $("#"+e.target.id+"_input").val(0);
             if(e.target.id == "duo") $(".duo_enabled").hide();
             if(e.target.id == "google_authentication") $(".google_enabled").hide();
             if(e.target.id == "agses_authentication_enabled") $(".agses_enabled").hide();
+            //if(e.target.id == "u2f") $(".u2f_enabled").hide();
         }
         // store in DB
         var data = "{\"field\":\""+e.target.id+"\", \"value\":\""+$("#"+e.target.id+"_input").val()+"\"}";
@@ -521,7 +545,6 @@ $(function() {
 
                     return;
                 }
-                console.log(data);
                 if (data.error == "") {
                     $("#"+e.target.id).before("<i class=\"fa fa-check fa-lg mi-green new_check\" style=\"float:right;\"></i>");
                     $(".new_check").fadeOut(2000);

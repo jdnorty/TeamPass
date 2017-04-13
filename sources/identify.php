@@ -208,7 +208,7 @@ if ($_POST['type'] === "identify_duo_user") {
         return false;
     }
 
-} elseif ($_POST['type'] == "store_data_in_cookie") {
+} elseif ($_POST['type'] === "store_data_in_cookie") {
     // not used any more (only development purpose)
     if ($_POST['key'] != $_SESSION['key']) {
         echo '[{"error" : "something_wrong"}]';
@@ -711,6 +711,26 @@ function identifyUser($sentData)
             "error" : "'.$logError.'"}]';
 
             exit();
+        }
+    }
+
+    // check U2F
+    if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] === "1" && $username !== "admin") {
+        // user has registrations?
+        $u2f_regs = DB::query(
+            "SELECT * FROM ".prefix_table("users_registration")."
+            WHERE user_id = %s",
+            $data['id']
+        );
+
+        if (DB::count() === 0) {
+            // no registration yet, register U2F key
+            echo '[{"value" : "u2f_ask_for_registration", "user_admin":"", "initial_url" : "", "error" : ""}]';
+
+            exit();
+        } else {
+            // Continue authentication
+
         }
     }
 

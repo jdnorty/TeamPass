@@ -11,7 +11,7 @@
 // DONT'T CHANGE BELOW THIS LINE
 global $settings, $languagesList;
 
-$k['version'] = "2.1.27";
+$k['version'] = "2.1.28";
 $k['tool_name'] = "TeamPass";
 $k['one_day_seconds'] = 86400;
 $k['one_week_seconds'] = 604800;

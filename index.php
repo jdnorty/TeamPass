@@ -655,6 +655,17 @@ if (
                         <div style="margin-top:2px; font-size:10px; text-align:center; cursor:pointer;" onclick="send_user_new_temporary_ga_code()">'.$LANG['i_need_to_generate_new_ga_code'].'</div>
                         </div>';
         }
+
+        // U2F
+        if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] === "1") {
+            echo '
+                        <div id="user_u2f_div" style="display:none; text-align:center; padding:5px; width:454px; margin-bottom:10px;" class="ui-state-active ui-corner-all">
+                            '.$LANG['user_profile_agses_card_id'].': &nbsp;
+                            <input type="text" size="12" id="agses_cardid">
+                        </div>
+                        <div id="user_u2f_info_div" style="text-align:center; display:none; margin:3px; padding:10px;" class="ui-state-default ui-corner-all"></div>';
+        }
+
         echo '
                         <div style="margin-bottom:3px;">
                             <label for="duree_session" class="">'.$LANG['index_session_duration'].'&nbsp;('.$LANG['minutes'].') </label>
@@ -665,7 +676,7 @@ if (
                             <span onclick="OpenDialog(\'div_forgot_pw\')" style="padding:3px;cursor:pointer;">'.$LANG['forgot_my_pw'].'</span>
                         </div>
                         <div style="text-align:center;margin-top:15px;">
-                            <input type="button" id="but_identify_user" onclick="launchIdentify(\'', isset($_SESSION['settings']['duo']) && $_SESSION['settings']['duo'] == 1 ? 1 : '', '\', \''.$nextUrl.'\', \'', isset($_SESSION['settings']['psk_authentication']) && $_SESSION['settings']['psk_authentication'] == 1 ? 1 : '', '\')" style="padding:3px;cursor:pointer;" class="ui-state-default ui-corner-all" value="'.$LANG['index_identify_button'].'" />
+                            <input type="button" id="but_identify_user" onclick="launchIdentify(\'', isset($_SESSION['settings']['duo']) && $_SESSION['settings']['duo'] == 1 ? 'duo' : '', '\', \''.$nextUrl.'\', \'', isset($_SESSION['settings']['psk_authentication']) && $_SESSION['settings']['psk_authentication'] == 1 ? 1 : '', '\')" style="padding:3px;cursor:pointer;" class="ui-state-default ui-corner-all" value="'.$LANG['index_identify_button'].'" />
                         </div>
                     </div>
                 </form>

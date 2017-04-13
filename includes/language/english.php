@@ -14,6 +14,9 @@
  */
 global $LANG;
 $LANG = array (
+    'settings_u2f' => 'Enable FIDO U2F authentication',
+    'settings_u2f_tip' => '',
+    'u2f_registration_in_progress' => 'U2F registration code for users are currently being created, please wait.',
     'select_all' => 'Select all',
     'item_has_change_proposal' => 'This item has a change proposal',
     'user_ga_code' => 'Email Google Authentication to user',

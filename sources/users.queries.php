@@ -1668,6 +1668,51 @@ if (!empty($_POST['type'])) {
             echo $return_values;
 */
             break;
+
+        /**
+         * U2F - CREATE REGSITRATION CODE FOR USERS
+         */
+        case "u2f_create_registration_code":
+            // Check KEY
+            if ($_POST['key'] != $_SESSION['key']) {
+                // error
+                exit();
+            }
+
+            //
+            require_once $_SESSION['settings']['cpassman_dir'].'/includes/libraries/Authentication/u2f/U2F.php';
+            $scheme = isset($_SERVER['HTTPS']) ? "https://" : "http://";
+            $u2f = new u2flib_server\U2F($scheme . $_SERVER['HTTP_HOST']);
+
+            $users = DB::query(
+                "SELECT id, login
+                FROM ".prefix_table("users")
+            );
+            foreach ($users as $user) {
+                // get reqs for the user
+                $rows = DB::query(
+                    "SELECT *
+                    FROM ".prefix_table("users_registration")."
+                    WHERE user_id = %i",
+                    $user['id']
+                );
+                $data = $u2f->getRegisterData($rows);
+                list($req,$sigs) = $data;
+
+                // save in DB
+                $reg = $u2f->doRegister(($req), json_decode($sigs));
+
+                //addReg($user->id, $reg);
+                echo $user['login'].":\n";
+                print_r($req);
+                print_r($sigs);
+                echo "\n";
+            }
+
+
+
+
+            break;
     }
 }
 // # NEW LOGIN FOR USER HAS BEEN DEFINED ##
