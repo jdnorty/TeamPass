@@ -180,12 +180,20 @@ $htmlHeaders .= '
         var randomstring =CreateRandomString(10);
 
         var data = "";
-        if ($("#ga_code").val() != undefined) {
+        if ($("#ga_code").val() !== undefined) {
             data = \', "GACode":"\'+sanitizeString($("#ga_code").val())+\'"\';
         }
-        if ($("#psk").val() != undefined) {
+        if ($("#psk").val() !== undefined) {
             data = \', "psk":"\'+sanitizeString($("#psk").val())+\'"\'+
                 \', "psk_confirm":"\'+sanitizeString($("#psk_confirm").val())+\'"\';
+        }
+        if ($("#u2f_otp").val() !== undefined) {
+            data = \', "u2f_otp":"\'+sanitizeString($("#u2f_otp").val())+\'"\';
+            $("#user_u2f_info_div").removeClass("ui-state-error");
+        }
+        // U2F - if user credentials are given
+        if ($("#user_u2f_id").val() !== undefined && $("#user_u2f_key").val() !== undefined) {
+            data += \', "user_u2f_id":"\'+sanitizeString($("#user_u2f_id").val())+\'", "user_u2f_key":"\'+sanitizeString($("#user_u2f_key").val())+\'"\';
         }
 
         // get timezone
@@ -211,7 +219,6 @@ $htmlHeaders .= '
             "sources/identify.php",
             {
                 type : "identify_user",
-                tst : "'.$_SESSION['CPM'].'",
                 data : prepareExchangedData(data, "encode", "'.$_SESSION["key"].'")
             },
             function(data) {
@@ -250,7 +257,7 @@ $htmlHeaders .= '
                     );
                 } else if (data[0].value == "false_onetimepw") {
                     $("#connection_error").html("'.addslashes($LANG['bad_onetime_password']).'").show();
-                } else if (data[0].pwd_attempts >=3 ||data[0].error == "bruteforce_wait") {
+                } else if (data[0].pwd_attempts >=3 || data[0].error === "bruteforce_wait") {
                     // now user needs to wait 10 secs before new passwd
                     $("#connection_error").html("'.addslashes($LANG['error_bad_credentials_more_than_3_times']).'").show();
                 } else if (data[0].error == "bad_credentials") {
@@ -266,8 +273,14 @@ $htmlHeaders .= '
                     $("#2fa_new_code_div").html(data[0].value+"<br />'.addslashes($LANG['ga_flash_qr_and_login']).'").show();
                 } else if (data[0].value === "install_error") {
                     $("#connection_error").html(data[0].error).show();
-                } else if (data[0].value === "u2f_ask_for_registration") {
-                    $("#user_u2f_info_div").html("Touch your U2F key to register it.").show();
+                } else if (data[0].value === "u2f" && data[0].error == "u2f_no_otp") {
+                    $("#user_u2f_info_div").addClass("ui-state-error");
+                    $("#user_u2f_info_div").html("You must provide the U2F OTP!").show(1).delay(7000).fadeOut(500);
+                } else if (data[0].value === "u2f" && data[0].error === "u2f_no_credentials") {
+                    $("#user_u2f_credentials").show();
+                } else if (data[0].value === "u2f_auth_error" && data[0].error !== "") {
+                    $("#user_u2f_info_div").addClass("ui-state-error");
+                    $("#user_u2f_info_div").html(data[0].error).show(1).delay(2000).fadeOut(500);
                 } else {
                     $("#connection_error").html("'.addslashes($LANG['error_bad_credentials']).'").show();
                 }

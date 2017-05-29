@@ -1,3 +1,7 @@
+2.1.28
+
+ New: U2F user authentication
+
 2.1.27
 
  #1769 Installation issue - no admin account is created

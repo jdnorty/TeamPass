@@ -108,30 +108,30 @@ echo '
 <div style="float:left;width:95%;margin:10px 0 5px 10px;">
     <hr>
     <div style="margin-bottom:6px;">
-        <i class="fa fa-child fa-fw fa-lg"></i>&nbsp;
+        <i class="fa fa-child fa-fw fa-lg" style="width:25px;"></i>&nbsp;
         '.$LANG['index_last_seen'].' ', isset($_SESSION['settings']['date_format']) ? date($_SESSION['settings']['date_format'], $_SESSION['derniere_connexion']) : date("d/m/Y", $_SESSION['derniere_connexion']), ' '.$LANG['at'].' ', isset($_SESSION['settings']['time_format']) ? date($_SESSION['settings']['time_format'], $_SESSION['derniere_connexion']) : date("H:i:s", $_SESSION['derniere_connexion']), '
     </div>';
 if (isset($_SESSION['last_pw_change']) && !empty($_SESSION['last_pw_change'])) {
     echo '
     <div style="margin-bottom:6px;">
-        <i class="fa fa-calendar fa-fw fa-lg"></i>&nbsp;'. $LANG['index_last_pw_change'].' ', isset($_SESSION['settings']['date_format']) ? date($_SESSION['settings']['date_format'], $_SESSION['last_pw_change']) : (isset($_SESSION['last_pw_change']) ? date("d/m/Y", $_SESSION['last_pw_change']) : "-"). '. ', $_SESSION['numDaysBeforePwExpiration'] == "infinite" ? '' : $LANG['index_pw_expiration'].' '.$_SESSION['numDaysBeforePwExpiration'].' '.$LANG['days'].'
+        <i class="fa fa-calendar fa-fw fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['index_last_pw_change'].' ', isset($_SESSION['settings']['date_format']) ? date($_SESSION['settings']['date_format'], $_SESSION['last_pw_change']) : (isset($_SESSION['last_pw_change']) ? date("d/m/Y", $_SESSION['last_pw_change']) : "-"). '. ', $_SESSION['numDaysBeforePwExpiration'] == "infinite" ? '' : $LANG['index_pw_expiration'].' '.$_SESSION['numDaysBeforePwExpiration'].' '.$LANG['days'].'
     </div>';
 }
 echo '
     <div style="margin-bottom:6px;margin-top:6px;">
-        <i class="fa fa-cloud-upload fa-fw fa-lg"></i>&nbsp;
+        <i class="fa fa-cloud-upload fa-fw fa-lg" style="width:25px;"></i>&nbsp;
         <span id="plupload_runtime2" class="ui-state-error ui-corner-all" style="width:350px;">'.$LANG['error_upload_runtime_not_found'].'</span>
         <input type="hidden" id="upload_enabled2" value="" />
     </div>
     <hr>
     <div style="margin-bottom:6px;">
-        <i class="fa fa-code-fork fa-fw fa-lg"></i>&nbsp;'. $LANG['tree_load_strategy'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_select" id="treeloadstrategy_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">'.$_SESSION['user_settings']['treeloadstrategy'].'</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-code-fork fa-fw fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['tree_load_strategy'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_select" id="treeloadstrategy_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">'.$_SESSION['user_settings']['treeloadstrategy'].'</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>
     <div style="margin-bottom:6px;">
-        <i class="fa fa-clock-o fa-fw fa-lg"></i>&nbsp;'. $LANG['timezone_selection'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_timezone" id="usertimezone_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', (isset($_SESSION['user_settings']['usertimezone']) && $_SESSION['user_settings']['usertimezone'] !== "not_defined") ? $_SESSION['user_settings']['usertimezone'] : $_SESSION['settings']['timezone'], '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-clock-o fa-fw fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['timezone_selection'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_timezone" id="usertimezone_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', (isset($_SESSION['user_settings']['usertimezone']) && $_SESSION['user_settings']['usertimezone'] !== "not_defined") ? $_SESSION['user_settings']['usertimezone'] : $_SESSION['settings']['timezone'], '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>
     <div style="margin-bottom:6px;">
-        <i class="fa fa-language fa-fw fa-lg"></i>&nbsp;'. $LANG['user_language'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_language" id="userlanguage_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_language']) ? $_SESSION['user_language'] : $_SESSION['settings']['default_language'], '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-language fa-fw fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_language'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_language" id="userlanguage_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_language']) ? $_SESSION['user_language'] : $_SESSION['settings']['default_language'], '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>';
 
 if (isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['settings']['agses_authentication_enabled'] == 1) {
@@ -139,7 +139,20 @@ if (isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['s
     <hr>
 
     <div style="margin-bottom:6px;">
-        <i class="fa fa-id-card-o fa-lg"></i>&nbsp;'. $LANG['user_profile_agses_card_id'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="agses-usercardid_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['agses-usercardid']) ? $_SESSION['user_settings']['agses-usercardid'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-id-card-o fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_profile_agses_card_id'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="agses-usercardid_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['agses-usercardid']) ? $_SESSION['user_settings']['agses-usercardid'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+    </div>';
+}
+
+
+if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1) {
+    echo '
+    <hr>
+
+    <div style="margin-bottom:6px;">
+        <i class="fa fa-id-card-o fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_id'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_id'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_id']) ? $_SESSION['user_settings']['u2f_id'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+    </div>
+    <div style="margin-bottom:6px;">
+        <i class="fa fa-key fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_key'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_key'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_key']) ? $_SESSION['user_settings']['u2f_key'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>';
 }
 

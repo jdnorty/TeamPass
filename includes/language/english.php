@@ -14,9 +14,21 @@
  */
 global $LANG;
 $LANG = array (
-    'settings_u2f' => 'Enable FIDO U2F authentication',
+    'settings_u2f' => 'Enable U2F authentication',
     'settings_u2f_tip' => '',
-    'u2f_registration_in_progress' => 'U2F registration code for users are currently being created, please wait.',
+    'u2f_otp' => 'U2F OTP',
+    'u2f_settings' => 'U2F settings',
+    'u2f_settings_tip' => '',
+    'u2f_setting_url' => 'URL part list (comma separated)',
+    'u2f_setting_https' => 'Use HTTPS',
+    'u2f_setting_httpsverify' => 'Disable certificate verification',
+    'u2f_setting_wait_for_all' => 'Wait for all',
+    'u2f_setting_timeout' => 'Timeout (optional)',
+    'u2f_setting_sl' => 'Sync level (0-100) [%] (optional)',
+    'user_u2f_credentials_are_missing' => 'Please fill in your U2F credentials.',
+    'user_u2f_enter_new_credentials' => 'Enter new U2F credentials',
+    'user_u2f_id' => 'U2F ID',
+    'user_u2f_key' => 'U2F Key',
     'select_all' => 'Select all',
     'item_has_change_proposal' => 'This item has a change proposal',
     'user_ga_code' => 'Email Google Authentication to user',

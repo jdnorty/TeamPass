@@ -718,21 +718,71 @@ function identifyUser($sentData)
 
     // check U2F
     if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] === "1" && $username !== "admin") {
-        // user has registrations?
-        $u2f_regs = DB::query(
-            "SELECT * FROM ".prefix_table("users_registration")."
-            WHERE user_id = %s",
-            $data['id']
-        );
-
-        if (DB::count() === 0) {
-            // no registration yet, register U2F key
-            echo '[{"value" : "u2f_ask_for_registration", "user_admin":"", "initial_url" : "", "error" : ""}]';
-
+        // user has given an OPT
+        if (isset($dataReceived['u2f_otp']) && empty($dataReceived['u2f_otp'])) {
+            // no U2F OTP given
+            echo '[{"value" : "u2f", "user_admin":"", "initial_url" : "", "error" : "u2f_no_otp"}]';
             exit();
-        } else {
-            // Continue authentication
+        } else if (isset($dataReceived['u2f_otp']) && !empty($dataReceived['u2f_otp'])) {
+            // user provides an OTP
+//print_r($dataReceived);
 
+            // if user enter new credentials
+            if (isset($dataReceived['user_u2f_id']) && isset($dataReceived['user_u2f_key']) && !empty($dataReceived['user_u2f_id']) && !empty($dataReceived['user_u2f_key'])) {
+                DB::update(
+                    prefix_table('users'),
+                    array(
+                        'u2f_id' => $dataReceived['user_u2f_id'],
+                        'u2f_key' => $dataReceived['user_u2f_key']
+                    ),
+                    "id=%i",
+                    $data['id']
+                );
+
+                $data['u2f_id'] = $dataReceived['user_u2f_id'];
+                $data['u2f_key'] = $dataReceived['user_u2f_key'];
+            }
+
+            // check if user has given U2F info
+            if ($data['u2f_id'] === "" || $data['u2f_key'] === "" || $data['u2f_id'] === "none" || $data['u2f_key'] === "none") {
+                // ask the user to enter his U2F credentials
+                echo '[{"value" : "u2f", "user_admin":"", "initial_url" : "", "error" : "u2f_no_credentials"}]';
+                exit();
+            }
+
+            // now verify Auth
+            require_once $_SESSION['settings']['cpassman_dir'].'/includes/libraries/Authentication/yubico/Yubico.php';
+
+            //$key = "oBVbNt7IZehZGR99rvq8d6RZ1DM=";
+            //$id = "1851";
+            $yubi = new Auth_Yubico(
+                $data['u2f_id'],
+                $data['u2f_key'],
+                isset($_SESSION['settings']['u2f_https']) && $_SESSION['settings']['u2f_https'] === "1" ? 1 : 0,
+                isset($_SESSION['settings']['u2f_httpsverify']) && $_SESSION['settings']['u2f_httpsverify'] === "1" ? 1 : 0
+            );
+            if ($ask_url) {
+                $urls=explode(",", $url);
+                foreach($urls as $u) $yubi->addURLpart($u);
+            }
+            $auth = $yubi->verify(
+                $dataReceived['u2f_otp'],
+                false,
+                isset($_SESSION['settings']['u2f_waitforall']) && $_SESSION['settings']['u2f_waitforall'] === "1" ? 1 : 0,
+                isset($_SESSION['settings']['u2f_sl']) && $_SESSION['settings']['u2f_sl'] === "1" ? 1 : 0,
+                isset($_SESSION['settings']['u2f_timeout']) && $_SESSION['settings']['u2f_timeout'] === "1" ? 1 : 0
+            );
+
+           // check if auth
+           if (PEAR::isError($auth)) {
+                echo '[{"value" : "u2f_auth_error", "user_admin":"", "initial_url" : "", "error" : "'.addslashes($auth->getMessage()).'"}]';
+                exit();
+            } else {
+              // success
+            }
+        } else {
+            echo '[{"value" : "u2f", "user_admin":"", "initial_url" : "", "error" : "u2f_unknown_error"}]';
+            exit();
         }
     }
 
@@ -867,6 +917,8 @@ function identifyUser($sentData)
             $_SESSION['user_settings']['encrypted_psk'] = $data['encrypted_psk'];
             $_SESSION['user_settings']['usertimezone'] = $data['usertimezone'];
             $_SESSION['user_settings']['session_duration'] = $dataReceived['duree_session'] * 60;
+            $_SESSION['user_settings']['u2f_key'] = $data['u2f_key'];
+            $_SESSION['user_settings']['u2f_id'] = $data['u2f_id'];
 
 
             // manage session expiration

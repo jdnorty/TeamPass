@@ -332,7 +332,7 @@ echo '
       </td>
     </tr>
 
-<!-- // FIDOU2F toggle -->
+<!-- // U2F toggle -->
     <tr>
       <td>
         <label for="u2f">
@@ -345,6 +345,79 @@ echo '
         <div class="toggle toggle-modern" id="u2f" data-toggle-on="', isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1 ? 'true' : 'false', '">
         </div>
         <input type="hidden" id="u2f_input" name="u2f_input" value="', isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1 ? '1' : '0', '" />
+      </td>
+    </tr>
+
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+          '.$LANG['u2f_setting_url'].'
+        </label>
+      </td>
+      <td>
+        <input type="text" size="70" id="u2f_url" value="', isset($_SESSION['settings']['u2f_url']) ? $_SESSION['settings']['u2f_url'] : 'api.yubico.com/wsapi/2.0/verify,api2.yubico.com/wsapi/2.0/verify,api3.yubico.com/wsapi/2.0/verify,api4.yubico.com/wsapi/2.0/verify,api5.yubico.com/wsapi/2.0/verify', '" class="text ui-widget-content" />
+      </td>
+    </tr>
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+         '.$LANG['u2f_setting_timeout'].'
+        </label>
+      </td>
+      <td>
+        <input type="text" size="5" id="u2f_setting_timeout" value="', isset($_SESSION['settings']['u2f_setting_timeout']) ? $_SESSION['settings']['u2f_setting_timeout'] : '0', '" class="text ui-widget-content" />
+      </td>
+    </tr>
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+         '.$LANG['u2f_setting_sl'].'
+        </label>
+      </td>
+      <td>
+        <input type="text" size="5" id="u2f_sl" value="', isset($_SESSION['settings']['u2f_sl']) ? $_SESSION['settings']['u2f_sl'] : '0', '" class="text ui-widget-content" />
+      </td>
+    </tr>
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+         '.$LANG['u2f_setting_https'].'
+        </label>
+      </td>
+      <td>
+        <div class="toggle toggle-modern" id="u2f_https" data-toggle-on="', isset($_SESSION['settings']['u2f_https']) && $_SESSION['settings']['u2f_https'] == 1 ? 'true' : 'false', '">
+        </div>
+        <input type="hidden" id="u2f_https_input" name="u2f_https_input" value="', isset($_SESSION['settings']['u2f_https']) && $_SESSION['settings']['u2f_https'] == 1 ? '1' : '0', '" />
+      </td>
+    </tr>
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+         '.$LANG['u2f_setting_httpsverify'].'
+        </label>
+      </td>
+      <td>
+        <div class="toggle toggle-modern" id="u2f_httpsverify" data-toggle-on="', isset($_SESSION['settings']['u2f_httpsverify']) && $_SESSION['settings']['u2f_httpsverify'] == 1 ? 'true' : 'false', '">
+        </div>
+        <input type="hidden" id="u2f_httpsverify_input" name="u2f_httpsverify_input" value="', isset($_SESSION['settings']['u2f_httpsverify']) && $_SESSION['settings']['u2f_httpsverify'] == 1 ? '1' : '0', '" />
+      </td>
+    </tr>
+    <tr class="u2f_enabled">
+      <td>
+        <label style="margin-left:20px;">
+          <i class="fa fa-caret-right mi-grey-1"></i>
+         '.$LANG['u2f_setting_wait_for_all'].'
+        </label>
+      </td>
+      <td>
+        <div class="toggle toggle-modern" id="u2f_waitforall" data-toggle-on="', isset($_SESSION['settings']['u2f_waitforall']) && $_SESSION['settings']['u2f_waitforall'] == 1 ? 'true' : 'false', '">
+        </div>
+        <input type="hidden" id="u2f_waitforall_input" name="u2f_waitforall_input" value="', isset($_SESSION['settings']['u2f_waitforall']) && $_SESSION['settings']['u2f_waitforall'] == 1 ? '1' : '0', '" />
       </td>
     </tr>
 
@@ -518,13 +591,13 @@ $(function() {
             if(e.target.id == "duo") $(".duo_enabled").show();
             if(e.target.id == "google_authentication") $(".google_enabled").show();
             if(e.target.id == "agses_authentication_enabled") $(".agses_enabled").show();
-            //if(e.target.id == "u2f") $(".u2f_enabled").show();
+            if(e.target.id == "u2f") $(".u2f_enabled").show();
         } else {
             $("#"+e.target.id+"_input").val(0);
             if(e.target.id == "duo") $(".duo_enabled").hide();
             if(e.target.id == "google_authentication") $(".google_enabled").hide();
             if(e.target.id == "agses_authentication_enabled") $(".agses_enabled").hide();
-            //if(e.target.id == "u2f") $(".u2f_enabled").hide();
+            if(e.target.id == "u2f") $(".u2f_enabled").hide();
         }
         // store in DB
         var data = "{\"field\":\""+e.target.id+"\", \"value\":\""+$("#"+e.target.id+"_input").val()+"\"}";

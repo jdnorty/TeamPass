@@ -429,7 +429,13 @@ global \$SETTINGS;
                             array('admin','create_item_without_password','0'),
                             array('admin','otv_is_enabled','0'),
                             array('admin','agses_authentication_enabled','0'),
-                            array('admin','item_extra_fields','0')
+                            array('admin','u2f_https','0'),
+                            array('admin','u2f_httpsverify','0'),
+                            array('admin','u2f_waitforall','0'),
+                            array('admin','u2f_sl','0'),
+                            array('admin','u2f_timeout','0'),
+                            array('admin','u2f_url','api.yubico.com/wsapi/2.0/verify,api2.yubico.com/wsapi/2.0/verify,api3.yubico.com/wsapi/2.0/verify,api4.yubico.com/wsapi/2.0/verify,api5.yubico.com/wsapi/2.0/verify'),
+                            array('admin','u2f','0')
                         );
                         foreach ($aMiscVal as $elem) {
                             //Check if exists before inserting
@@ -538,6 +544,8 @@ global \$SETTINGS;
                             `agses-usercardid` VARCHAR(50) NOT NULL DEFAULT '0',
                             `encrypted_psk` text NULL,
                             `user_ip` varchar(60) NOT null DEFAULT 'none',
+                            `u2f_id` varchar(10) NOT null DEFAULT 'none',
+                            `u2f_key` varchar(50) NOT null DEFAULT 'none',
                             PRIMARY KEY (`id`),
                             UNIQUE KEY `login` (`login`)
                             ) CHARSET=utf8;"
