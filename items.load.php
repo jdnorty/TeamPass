@@ -1223,9 +1223,12 @@ function AfficherDetailsItem(id, salt_key_required, expired_item, restricted, di
 
     // Check if personal SK is needed and set
     if (($('#recherche_group_pf').val() === "1" && $('#personal_sk_set').val() === "0") && salt_key_required === "1") {
-        $("#div_dialog_message_text").html("<div style='font-size:16px;'><span class='fa fa-warning fa-lg mi-red'></span>&nbsp;<\/span><?php echo addslashes($LANG['alert_message_personal_sk_missing']);?><\/div>");
+        $("#set_personal_saltkey_warning").html("<div style='font-size:16px;'><span class='fa fa-warning fa-lg'></span>&nbsp;</span><?php echo addslashes($LANG['alert_message_personal_sk_missing']);?></div>").show(1).delay(2500).fadeOut(1000);
+        $('#div_set_personal_saltkey').dialog('open');
+
+        //$("#div_dialog_message_text").html("<div style='font-size:16px;'><span class='fa fa-warning fa-lg mi-red'></span>&nbsp;<\/span><?php echo addslashes($LANG['alert_message_personal_sk_missing']);?><\/div>");
         $("#div_loading").hide();
-        $("#div_dialog_message").dialog("open");
+        //$("#div_dialog_message").dialog("open");
         $("#request_ongoing").val("");
         return false;
     } else if ($('#recherche_group_pf').val() === "0" || ($('#recherche_group_pf').val() === "1" && $('#personal_sk_set').val() === "1")) {
@@ -1259,15 +1262,15 @@ function AfficherDetailsItem(id, salt_key_required, expired_item, restricted, di
                     page                : "items",
                     key                 : "<?php echo $_SESSION['key'];?>"
                 },
-                function(data) {
+                function(data_raw) {
                     //decrypt data
                     try {
-                        data = prepareExchangedData(data , "decode", "<?php echo $_SESSION['key'];?>");
+                        data = prepareExchangedData(data_raw , "decode", "<?php echo $_SESSION['key'];?>");
                     } catch (e) {
                         // error
                         $("#div_loading").hide();
                         $("#request_ongoing").val("");
-                        $("#div_dialog_message_text").html("An error appears. Answer from Server cannot be parsed!<br /><br />Returned data:<br />"+data);
+                        $("#div_dialog_message_text").html("An error appears. Answer from Server cannot be parsed!<br /><br />Returned data:<br />"+data_raw);
                         $("#div_dialog_message").show();
                         return;
                     }
@@ -1857,8 +1860,7 @@ function open_edit_item_div(restricted_to_roles)
 {
     // is user read only and it is not a personal folder
     if (
-        ($('#recherche_group_pf').val() == 0 && $("#user_is_read_only").length && $("#user_is_read_only").val() == "1") ||
-        $("#access_level").val() === "1" || $("#access_level").val() === "2" || $("#access_level").val() === "3"
+        ($('#recherche_group_pf').val() === "0" && $("#user_is_read_only").length && $("#user_is_read_only").val() === "1") && ($("#access_level").val() === "1" || $("#access_level").val() === "2" || $("#access_level").val() === "3")
     ) {
         displayMessage("<?php echo $LANG['error_not_allowed_to'];?>");
         return false;
@@ -2024,8 +2026,7 @@ function open_del_item_div()
 {
     // is user read only
     if (
-        ($('#recherche_group_pf').val() == 0 && $("#user_is_read_only").length && $("#user_is_read_only").val() == "1") ||
-        $("#access_level").val() == "1" || $("#access_level").val() == "2" || $("#access_level").val() == "3"
+        ($('#recherche_group_pf').val() === "0" && $("#user_is_read_only").length && $("#user_is_read_only").val() === "1") && ($("#access_level").val() === "1" || $("#access_level").val() === "2" || $("#access_level").val() === "3")
     ) {
         displayMessage("<i class='fa fa-warning'></i>&nbsp;<?php echo addslashes($LANG['error_not_allowed_to']);?>");
         return false;
@@ -2600,12 +2601,8 @@ $(function() {
                     },
                     function(data) {
                         //check if format error
-                        if (data[0].error == "no_item") {
-                            $("#copy_item_to_folder_show_error").html(data[1].error_text).show();
-                        } else if (data[0].error == "not_allowed") {
-                            $("#copy_item_to_folder_show_error").html(data[1].error_text).show();
-                        } else if (data[0].error == "no_psk") {
-                            $("#copy_item_to_folder_show_error").html(data[1].error_text).show();
+                        if (data[0].error !== "") {
+                            $("#copy_item_to_folder_show_error").html(data[1].error_text).show(1).delay(2000).fadeOut(1000);
                         }
                         //if OK
                         if (data[0].status == "ok") {
@@ -2703,6 +2700,13 @@ $(function() {
         width: 500,
         height: 290,
         title: "<?php echo $LANG['copy_folder'];?>",
+        close: function () {
+            $("#copy_folder_source_id, #copy_folder_destination_id").children('option').remove();
+            $("#div_copy_folder_msg")
+                .html('')
+                .removeClass("ui-state-highlight")
+                .hide();
+        },
         open: function(event,ui) {
             $("#div_copy_folder ~ .ui-dialog-buttonpane").find("button:contains('<?php echo $LANG['save_button'];?>')").prop("disabled", false);
 

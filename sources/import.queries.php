@@ -201,7 +201,7 @@ switch ($_POST['type']) {
             $display .= '<tr><td colspan=\"2\"><br><input type=\"checkbox\" id=\"item_all_selection\" />&nbsp;'.$LANG['all'].'</td></tr>';
 
             // Prepare a list of all folders that the user can choose
-            $display .= '</table><div style=\"margin-top:10px;\"><label><b>'.$LANG['import_to_folder'].'</b></label>&nbsp;<select id=\"import_items_to\">';
+            $display .= '</table><div style=\"margin:10px 0 10px 0;\"><label><b>'.$LANG['import_to_folder'].'</b></label>&nbsp;<select id=\"import_items_to\" style=\"width:87%;\">';
             foreach ($tree as $t) {
                 if (in_array($t->id, $_SESSION['groupes_visibles'])) {
                     $ident="";
@@ -271,9 +271,9 @@ switch ($_POST['type']) {
                     'description' => $item[4],
                     'pw' => $encrypt['string'],
                     'pw_iv' => $encrypt['iv'],
-                    'url' => $item[3],
+                    'url' => substr($item[3], 0, 500),
                     'id_tree' => $_POST['folder'],
-                    'login' => $item[1],
+                    'login' => substr($item[1], 0, 200),
                     'anyone_can_modify' => $_POST['import_csv_anyone_can_modify'] == "true" ? 1 : 0
                )
             );
@@ -318,7 +318,7 @@ switch ($_POST['type']) {
                     'description' => $item[4],
                     'id_tree' => $_POST['folder'],
                     'perso' => $personalFolder == 0 ? 0 : 1,
-                    'login' => $item[1],
+                    'login' => substr($item[1], 0, 500),
                     'folder' => $data_fld['title'],
                     'author' => $_SESSION['user_id'],
                     'timestamp' => time(),
@@ -867,9 +867,9 @@ switch ($_POST['type']) {
                                 'description' => stripslashes(str_replace($lineEndSeparator, '<br />', $item[KP_NOTES])),
                                 'pw' => $encrypt['string'],
                                 'pw_iv' => $encrypt['iv'],
-                                'url' => stripslashes($item[KP_URL]),
+                                'url' => substr(stripslashes($item[KP_URL]), 0, 500),
                                 'id_tree' => $folderId,
-                                'login' => stripslashes($item[KP_USERNAME]),
+                                'login' => substr(stripslashes($item[KP_USERNAME]), 0, 500),
                                 'anyone_can_modify' => $_POST['import_kps_anyone_can_modify'] == "true" ? 1 : 0
                            )
                         );
@@ -909,7 +909,7 @@ switch ($_POST['type']) {
                                 'description' => stripslashes(str_replace($lineEndSeparator, '<br />', $item[KP_NOTES])),
                                 'id_tree' => $folderId,
                                 'perso' => $personalFolder == 0 ? 0 : 1,
-                                'login' => stripslashes($item[KP_USERNAME]),
+                                'login' => substr(stripslashes($item[KP_USERNAME]), 0, 500),
                                 'folder' => $data['title'],
                                 'author' => $_SESSION['user_id'],
                                 'timestamp' => time()

@@ -217,18 +217,32 @@ if (isset($_POST['type'])) {
                     foreach (explode("_|_", $dataReceived['fields']) as $field) {
                         $field_data = explode("~~", $field);
                         if (count($field_data)>1 && !empty($field_data[1])) {
-                            $encrypt = cryption(
-                                $field_data[1],
-                                "",
-                                "encrypt"
+                            // should we encrypt the data
+                            $dataTmp = DB::queryFirstRow("SELECT encrypted_data
+                                    FROM ".prefix_table("categories")."
+                                    WHERE id = %i", $field_data[0]
                             );
+                            if ($dataTmp['encrypted_data'] === "1") {
+                                $encrypt = cryption(
+                                    $field_data[1],
+                                    "",
+                                    "encrypt"
+                                );
+                                $enc_type = "defuse";
+                            } else {
+                                $encrypt['string'] = $field_data[1];
+                                $enc_type = "not_set";
+                            }
+
+
                             DB::insert(
                                 prefix_table('categories_items'),
                                 array(
                                     'item_id' => $newID,
                                     'field_id' => $field_data[0],
                                     'data' => $encrypt['string'],
-                                    'data_iv' => $encrypt['iv']
+                                    'data_iv' => "",
+                                    'encryption_type' => $enc_type
                                 )
                             );
                         }
@@ -558,8 +572,8 @@ if (isset($_POST['type'])) {
                         foreach (explode("_|_", $dataReceived['fields']) as $field) {
                             $field_data = explode("~~", $field);
                             if (count($field_data)>1 && !empty($field_data[1])) {
-                                $dataTmp = DB::queryFirstRow(
-                                    "SELECT c.title AS title, i.data AS data, i.data_iv AS data_iv, c.encrypted_data AS encrypted_data
+                                $dataTmpCat = DB::queryFirstRow(
+                                    "SELECT c.title AS title, i.data AS data, i.data_iv AS data_iv, i.encryption_type AS encryption_type, c.encrypted_data AS encrypted_data
                                     FROM ".prefix_table("categories_items")." AS i
                                     INNER JOIN ".prefix_table("categories")." AS c ON (i.field_id=c.id)
                                     WHERE i.field_id = %i AND i.item_id = %i",
@@ -567,12 +581,28 @@ if (isset($_POST['type'])) {
                                     $dataReceived['id']
                                 );
                                 // store Field text in DB
-                                if (count($dataTmp['title']) == 0) {
-                                    $encrypt = cryption(
-                                        $field_data[1],
-                                        "",
-                                        "encrypt"
+                                if (count($dataTmpCat['title']) === 0) {
+                                    // get info about this custom field
+                                    $dataTmpCat = DB::queryFirstRow(
+                                        "SELECT title, encrypted_data
+                                        FROM ".prefix_table("categories")."
+                                        WHERE id = %i",
+                                        $field_data[0]
                                     );
+
+                                    // should we encrypt the data
+                                    if ($dataTmpCat['encrypted_data'] === "1") {
+                                        $encrypt = cryption(
+                                            $field_data[1],
+                                            "",
+                                            "encrypt"
+                                        );
+                                        $enc_type = "defuse";
+                                    } else {
+                                        $encrypt['string'] = $field_data[1];
+                                        $enc_type = "not_set";
+                                    }
+
                                     // store field text
                                     DB::insert(
                                         prefix_table('categories_items'),
@@ -580,40 +610,54 @@ if (isset($_POST['type'])) {
                                             'item_id' => $dataReceived['id'],
                                             'field_id' => $field_data[0],
                                             'data' => $encrypt['string'],
-                                            'data_iv' => ""
-                                            //'data_iv' => $encrypt['iv']
+                                            'data_iv' => "",
+                                            'encryption_type' => $enc_type
                                         )
                                     );
+
                                     // update LOG
-                                    logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_creation', $_SESSION['login'], 'at_field : '.$dataTmp['title'].' : '.$field_data[1]);
+                                    logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_modification', $_SESSION['login'], 'at_field : '.$dataTmpCat['title'].' : '.$field_data[1]);
                                 } else {
                                     // compare the old and new value
-                                    $oldVal = cryption(
-                                        $dataTmp['data'],
-                                        "",
-                                        "decrypt"
-                                    );
-                                    if ($field_data[1] != $oldVal['string']) {
-                                        $encrypt = cryption(
-                                            $field_data[1],
+                                    if ($dataTmpCat['encryption_type'] === "defuse") {
+                                        $oldVal = cryption(
+                                            $dataTmpCat['data'],
                                             "",
-                                            "encrypt"
+                                            "decrypt"
                                         );
+                                    } else {
+                                        $oldVal['string'] = $dataTmpCat['data'];
+                                    }
+
+                                    if ($field_data[1] !== $oldVal['string']) {
+                                        // should we encrypt the data
+                                        if ($dataTmpCat['encrypted_data'] === "1") {
+                                            $encrypt = cryption(
+                                                $field_data[1],
+                                                "",
+                                                "encrypt"
+                                            );
+                                            $enc_type = "defuse";
+                                        } else {
+                                            $encrypt['string'] = $field_data[1];
+                                            $enc_type = "not_set";
+                                        }
+
                                         // update value
                                         DB::update(
                                             prefix_table('categories_items'),
                                             array(
                                                 'data' => $encrypt['string'],
-                                                'data_iv' => ""
-                                                //'data_iv' => $encrypt['iv']
+                                                'data_iv' => "",
+                                                'encryption_type' => $enc_type
                                             ),
                                             "item_id = %i AND field_id = %i",
                                             $dataReceived['id'],
                                             $field_data[0]
                                         );
-
+                                        
                                         // update LOG
-                                        logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_modification', $_SESSION['login'], 'at_field : '.$dataTmp['title'].' => '.$oldVal['string']);
+                                        logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_modification', $_SESSION['login'], 'at_field : '.$dataTmpCat['title'].' => '.$oldVal['string']);
                                     }
                                 }
                             } else {
@@ -784,7 +828,7 @@ if (isset($_POST['type'])) {
                         );
                     }
                     if ($sentPw != $oldPwClear['string']) {
-                        logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_modification', $_SESSION['login'], 'at_pw :'.$oldPw, "");
+                        logItems($dataReceived['id'], $label, $_SESSION['user_id'], 'at_modification', $_SESSION['login'], 'at_pw :'.$oldPw, "", "defuse");
                     }
                     /*RESTRICTIONS */
                     if ($data['restricted_to'] != $dataReceived['restricted_to']) {
@@ -1046,6 +1090,24 @@ if (isset($_POST['type'])) {
 
                     // this item is now private
                     $is_perso = 1;
+                } else if ($originalRecord['perso'] === "0" && $dataDestination['personal_folder'] === "0") {
+                    // decrypt and re-encrypt password
+                    $decrypt = cryption(
+                        $originalRecord['pw'],
+                        "",
+                        "decrypt"
+                    );
+                    $encrypt = cryption(
+                        $decrypt['string'],
+                        "",
+                        "encrypt"
+                    );
+
+                    // reaffect pw
+                    $originalRecord['pw'] = $encrypt['string'];
+
+                    // is public item
+                    $is_perso = 0;
                 } else {
                     $returnValues = '[{"error" : "case_not_managed"}, {"error_text" : "ERROR - case is not managed"}]';
                         echo $returnValues;
@@ -1084,7 +1146,7 @@ if (isset($_POST['type'])) {
                     $newID
                 );
                 // Add attached itms
-                $rows = DB::query("SELECT * FROM ".prefix_table("files")." WHERE id_item=%i",$newID);
+                $rows = DB::query("SELECT * FROM ".prefix_table("files")." WHERE id_item=%i", $_POST['item_id']);
                 foreach ($rows as $record) {
                     DB::insert(
                         prefix_table('files'),
@@ -1098,6 +1160,34 @@ if (isset($_POST['type'])) {
                            )
                     );
                 }
+
+                // Add specific restrictions
+                $rows = DB::query("SELECT * FROM ".prefix_table("restriction_to_roles")." WHERE item_id = %i", $_POST['item_id']);
+                foreach ($rows as $record) {
+                    DB::insert(
+                        prefix_table('restriction_to_roles'),
+                        array(
+                            'item_id' => $newID,
+                            'role_id' => $record['role_id']
+                           )
+                    );
+                }
+
+                // Add Tags
+                $rows = DB::query("SELECT * FROM ".prefix_table("tags")." WHERE item_id = %i", $_POST['item_id']);
+                foreach ($rows as $record) {
+                    DB::insert(
+                        prefix_table('tags'),
+                        array(
+                            'item_id' => $newID,
+                            'tag' => $record['tag']
+                           )
+                    );
+                }
+
+                // Add custom fields
+
+
                 // Add this duplicate in logs
                 logItems($newID, $originalRecord['label'], $_SESSION['user_id'], 'at_creation', $_SESSION['login']);
                 // Add the fact that item has been copied in logs
@@ -1283,7 +1373,7 @@ if (isset($_POST['type'])) {
                 ||
                 (isset($_SESSION['settings']['anyone_can_modify']) && $_SESSION['settings']['anyone_can_modify'] == 1 && $dataItem['anyone_can_modify'] == 1 && (in_array($dataItem['id_tree'], $_SESSION['groupes_visibles']) || $_SESSION['is_admin'] == 1) && $restrictionActive == false)
                 ||
-                (isset($_POST['folder_id']) && in_array($_POST['id'], $_SESSION['list_folders_limited'][$_POST['folder_id']]))
+                (isset($_POST['folder_id']) && isset($_SESSION['list_folders_limited'][$_POST['folder_id']]) && in_array($_POST['id'], $_SESSION['list_folders_limited'][$_POST['folder_id']]))
             ) {
                 // Allow show details
                 $arrData['show_details'] = 1;
@@ -1409,7 +1499,7 @@ if (isset($_POST['type'])) {
 
                         // get fields for this Item
                         $rows_tmp = DB::query(
-                            "SELECT i.field_id AS field_id, i.data AS data, i.data_iv AS data_iv, c.encrypted_data
+                            "SELECT i.field_id AS field_id, i.data AS data, i.data_iv AS data_iv, i.encryption_type AS encryption_type, c.encrypted_data
                             FROM ".prefix_table("categories")."_items AS i
                             INNER JOIN ".prefix_table("categories")." AS c ON (i.field_id=c.id)
                             WHERE i.item_id=%i AND c.parent_id IN %ls",
@@ -1417,12 +1507,17 @@ if (isset($_POST['type'])) {
                             $arrCatList
                         );
                         foreach ($rows_tmp as $row) {
-                            $fieldText = cryption(
-                                $row['data'],
-                                "",
-                                "decrypt"
-                            );
-                            $fieldText = $fieldText['string'];
+                            if ($row['encryption_type'] === "defuse") {
+                                $fieldText = cryption(
+                                    $row['data'],
+                                    "",
+                                    "decrypt"
+                                );
+                                $fieldText = $fieldText['string'];
+                            } else {
+                                $fieldText = $row['data'];
+                            }
+
                             // build returned list of Fields text
                             if (empty($fieldsTmp)) {
                                 $fieldsTmp = $row['field_id']."~~".str_replace('"', '&quot;', $fieldText);
@@ -1822,6 +1917,13 @@ if (isset($_POST['type'])) {
                 WHERE id = %i",
                 $dataReceived['target_folder_id']
             );
+
+            // check if target is not a child of source
+            if ($tree->isChildOf($dataReceived['target_folder_id'], $dataReceived['source_folder_id']) === true) {
+                $returnValues = '[{"error" : "'.addslashes($LANG['error_not_allowed_to']).'"}]';
+                echo $returnValues;
+                break;
+            }
 
             // check if source or target folder is PF. If Yes, then cancel operation
             if (
@@ -3234,95 +3336,7 @@ if (isset($_POST['type'])) {
 
             // should we encrypt/decrypt the file
             encrypt_or_decrypt_file($file_info['file'], $file_info['status'], $opts);
-/*
-            if (isset($_SESSION['settings']['enable_attachment_encryption']) && $_SESSION['settings']['enable_attachment_encryption'] === "1" && isset($file_info['status']) && $file_info['status'] === "clear") {
-                // file needs to be encrypted
-                if (file_exists($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code)) {
-                    // make a copy of file
-                    if (!copy(
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code,
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".copy"
-                    )) {
-                        $error = "Copy not possible";
-                        exit;
-                    } else {
-                        // do a bck
-                        copy(
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code,
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".bck"
-                        );
-                    }
 
-                    // Open the file
-                    unlink($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code);
-                    $fp = fopen($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".copy", "rb");
-                    $out = fopen($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code, 'wb');
-
-                    // ecnrypt
-                    stream_filter_append($out, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-
-                    // read file and create new one
-                    while (($line = fgets($fp)) !== false) {
-                        fputs($out, $line);
-                    }
-                    fclose($fp);
-                    fclose($out);
-
-                    // update table
-                    DB::update(
-                        prefix_table('files'),
-                        array(
-                            'status' => 'encrypted'
-                           ),
-                        "id=%i",
-                        substr($_POST['uri'], 1)
-                    );
-                }
-            } elseif (isset($_SESSION['settings']['enable_attachment_encryption']) && $_SESSION['settings']['enable_attachment_encryption'] === "0" && isset($file_info['status']) && $file_info['status'] === "encrypted") {
-                // file needs to be encrypted
-                if (file_exists($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code)) {
-                    // make a copy of file
-                    if (!copy(
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code,
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".copy"
-                    )) {
-                        $error = "Copy not possible";
-                        exit;
-                    } else {
-                        // do a bck
-                        copy(
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code,
-                            $_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".bck"
-                        );
-                    }
-
-                    // Open the file
-                    unlink($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code);
-                    $fp = fopen($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code.".copy", "rb");
-                    $out = fopen($_SESSION['settings']['path_to_upload_folder'].'/'.$image_code, 'wb');
-
-                    // ecnrypt
-                    stream_filter_append($fp, 'mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
-
-                    // read file and create new one
-                    while (($line = fgets($fp)) !== false) {
-                        fputs($out, $line);
-                    }
-                    fclose($fp);
-                    fclose($out);
-
-                    // update table
-                    DB::update(
-                        prefix_table('files'),
-                        array(
-                            'status' => 'clear'
-                           ),
-                        "id=%i",
-                        substr($_POST['uri'], 1)
-                    );
-                }
-            }
-*/
             // should we decrypt the attachment?
             if (isset($file_info['status']) && $file_info['status'] === "encrypted") {
 
@@ -3711,7 +3725,7 @@ if (isset($_POST['type'])) {
 
                     // prepare avatar
                     if (isset($record['avatar_thumb']) && !empty($record['avatar_thumb'])) {
-                        if (file_exists($_SESSION['settings']['cpassman_url'].'/includes/avatars/'.$record['avatar_thumb'])) {
+                        if (file_exists($_SESSION['settings']['cpassman_dir'].'/includes/avatars/'.$record['avatar_thumb'])) {
                             $avatar = $_SESSION['settings']['cpassman_url'].'/includes/avatars/'.$record['avatar_thumb'];
                         } else {
                             $avatar = $_SESSION['settings']['cpassman_url'].'/includes/images/photo.jpg';
