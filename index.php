@@ -670,17 +670,25 @@ if (
             echo '
                         <div id="user_u2f_div" style="text-align:center; padding:5px; width:454px; margin-bottom:10px; font-weight:normal;" class="ui-state-focus ui-corner-all">
                             '.$LANG['u2f_otp'].' &nbsp;
-                            <input type="text" size="30" id="u2f_otp" style="background: white url(\'./includes/libraries/Authentication/yubico/yubiright_16x16.gif\') no-repeat 2px 2px; padding-left: 20px; height: 18px; width: 180px">
+                            <input type="text" size="30" id="u2f_otp" style="background: white url(\'./includes/libraries/Authentication/yubico/yubiright_16x16.gif\') no-repeat 2px 2px; padding-left: 20px; height: 18px; width: 180px;" class="input_text text ui-widget-content ui-corner-all">
+                            &nbsp;
+
+                            <span class="fa-stack tip cursor" title="'.addslashes($LANG['clear_field']).'" onclick="">
+                                <i class="fa fa-square fa-stack-2x"></i>
+                                <i class="fa fa-eraser fa-stack-1x fa-inverse"></i>
+                            </span>
+
+
                             <br />
                             <div style="font-size:10px; cursor:pointer;" onclick="$(\'#user_u2f_credentials\').show();">'.$LANG['user_u2f_enter_new_credentials'].'</div>
                             <!-- U2F credentials -->
-                            <div id="user_u2f_credentials" style="display:none; width:454px; margin-top:10px; text-align:left;">
+                            <div id="user_u2f_credentials" style="display:none; width:454px; margin-top:10px; text-align:left; line-height:27px;">
                                 <div style="font-weight:bold; margin-bottom:5px;">'.$LANG['user_u2f_credentials_are_missing'].'</div>
                                 <label for="user_u2f_id" class="form_label">'.$LANG['user_u2f_id'].'</label>
-                                <input type="password" size="10" id="user_u2f_id" />
+                                <input type="password" size="10" id="user_u2f_id" class="ui-widget-content ui-corner-all numeric_only" style="padding:2px;" />
                                 <br />
                                 <label for="user_u2f_key" class="form_label">'.$LANG['user_u2f_key'].'</label>
-                                <input type="text" size="20" id="user_u2f_key" />
+                                <input type="text" size="20" id="user_u2f_key" class="ui-widget-content ui-corner-all"  style="padding:2px;" />
                             </div>
                         </div>
                         <div id="user_u2f_info_div" style="text-align:center; display:none; width:454px; padding:10px; margin-bottom:10px;" class="ui-state-default ui-corner-all"></div>';

@@ -916,6 +916,7 @@ function identifyUser($sentData)
             $_SESSION['user_settings']['session_duration'] = $dataReceived['duree_session'] * 60;
             $_SESSION['user_settings']['u2f_key'] = $data['u2f_key'];
             $_SESSION['user_settings']['u2f_id'] = $data['u2f_id'];
+            $_SESSION['user_settings']['api_user_key'] = $data['api_user_key'];
 
 
             // manage session expiration

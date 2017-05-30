@@ -1305,6 +1305,9 @@ function prefix_table($table)
  */
 function GenerateCryptKey($size="", $secure="", $numerals="", $capitalize="", $ambiguous="", $symbols="")
 {
+    //load ClassLoader
+    require_once $_SESSION['settings']['cpassman_dir'].'/sources/SplClassLoader.php';
+
     // load library
     $pwgen = new SplClassLoader('Encryption\PwGen', '../includes/libraries');
     $pwgen->register();

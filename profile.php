@@ -134,7 +134,16 @@ echo '
         <i class="fa fa-language fa-fw fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_language'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_language" id="userlanguage_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_language']) ? $_SESSION['user_language'] : $_SESSION['settings']['default_language'], '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>';
 
-if (isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['settings']['agses_authentication_enabled'] == 1) {
+if (isset($_SESSION['settings']['api']) && $_SESSION['settings']['api'] === "1") {
+    echo '
+    <hr>
+
+    <div style="margin-bottom:6px;">
+        <i class="fa fa-rss fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['admin_agses_hosted_apikey'].':&nbsp;<span style="font-weight:bold;" id="api_user_key_'.$_SESSION['user_id'].'">', isset($_SESSION['user_settings']['api_user_key']) ? $_SESSION['user_settings']['api_user_key'] : '', '</span>&nbsp;<i class="fa fa-random fa-fw" style="cursor:pointer;" title="'.$LANG['click_to_generate'].'" onclick="saveUserSettings(\'api_user_key_'.$_SESSION['user_id'].'\');"></i>
+    </div>';
+}
+
+if (isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['settings']['agses_authentication_enabled'] === "1") {
     echo '
     <hr>
 
@@ -144,15 +153,15 @@ if (isset($_SESSION['settings']['agses_authentication_enabled']) && $_SESSION['s
 }
 
 
-if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] == 1) {
+if (isset($_SESSION['settings']['u2f']) && $_SESSION['settings']['u2f'] === "1") {
     echo '
     <hr>
 
     <div style="margin-bottom:6px;">
-        <i class="fa fa-id-card-o fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_id'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_id'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_id']) ? $_SESSION['user_settings']['u2f_id'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-id-card-o fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_id'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_id_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_id']) ? $_SESSION['user_settings']['u2f_id'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>
     <div style="margin-bottom:6px;">
-        <i class="fa fa-key fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_key'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_key'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_key']) ? $_SESSION['user_settings']['u2f_key'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
+        <i class="fa fa-key fa-lg" style="width:25px;"></i>&nbsp;'. $LANG['user_u2f_key'].':&nbsp;<span style="cursor:pointer; font-weight:bold;" class="editable_textarea" id="u2f_key_'.$_SESSION['user_id'].'" title="'.$LANG['click_to_change'].'">', isset($_SESSION['user_settings']['u2f_key']) ? $_SESSION['user_settings']['u2f_key'] : '', '</span>&nbsp;<i class="fa fa-pencil fa-fw jeditable-activate" style="cursor:pointer;"></i>
     </div>';
 }
 
@@ -170,7 +179,7 @@ echo '
     <div id="filelist_photo" style="display:none;"></div>';
 
 // if DUOSecurity enabled then changing PWD is not allowed
-if (!isset($_SESSION['settings']['duo']) || $_SESSION['settings']['duo'] == 0)
+if (!isset($_SESSION['settings']['duo']) || $_SESSION['settings']['duo'] === "0")
    echo '
     <div id="div_change_password" style="display:none; padding:5px;" class="ui-widget ui-state-default">
         <div style="text-align:center;margin:5px;padding:3px;" id="change_pwd_complexPw" class="ui-widget ui-state-active ui-corner-all"></div>
@@ -225,6 +234,7 @@ echo '
 echo '
 </div>';
 ?>
+<script type="text/javascript" src="<?php echo $_SESSION['settings']['cpassman_url'];?>/includes/js/functions.js"></script>
 <script type="text/javascript">
 $(function() {
     $(".tip").tooltipster({multiple: true});
@@ -236,7 +246,7 @@ $(function() {
 
       if ($("#div_change_password").not(":visible")) {
          $("#div_change_password").show();
-         $("#dialog_user_profil").dialog("option", "height", 580);
+         $("#dialog_user_profil").dialog("option", "height", 660);
       }
     });
 
@@ -308,7 +318,7 @@ $(function() {
                             $("#change_pwd_error").addClass("ui-state-error ui-corner-all").show().html("<span><?php echo $LANG['error_complex_not_enought'];?></span>");
                         } else {
                             $("#div_change_password").hide();
-                            $("#dialog_user_profil").dialog("option", "height", 450);
+                            $("#dialog_user_profil").dialog("option", "height", 520);
                             $("#new_pw, #new_pw2").val("");
                         }
                         $("#password_change_wait").hide();
@@ -417,7 +427,7 @@ $(function() {
 
    $("#but_pickfiles_photo").click(function() {
       $("#div_change_psk, #div_reset_psk, #div_change_password").hide();
-      $("#dialog_user_profil").dialog("option", "height", 450);
+      $("#dialog_user_profil").dialog("option", "height", 520);
    });
 
     //inline editing
@@ -488,7 +498,7 @@ $(function() {
       $("#old_personal_saltkey").val("<?php echo addslashes(str_replace("&quot;", '"', @$_SESSION['my_sk']));?>");
 
       $("#div_change_psk").show();
-      $("#dialog_user_profil").dialog("option", "height", 600);
+      $("#dialog_user_profil").dialog("option", "height", 660);
     });
 
     // manage CHANGE OF PERSONAL SALTKEY
@@ -540,7 +550,7 @@ $(function() {
       $("#new_reset_psk").val("");
 
       $("#div_reset_psk").show();
-      $("#dialog_user_profil").dialog("option", "height", 600);
+      $("#dialog_user_profil").dialog("option", "height", 660);
     });
    $("#button_reset_psk").click(function() {
       $("#psk_reset_wait").show();
@@ -651,7 +661,18 @@ function changePersonalSaltKey(credentials, ids, nb_total)
             }
         }
     );
+}
 
-
+function saveUserSettings(setting) {
+    $.post(
+        "sources/users.queries.php",
+        {
+            newValue : "new_api_key",
+            id   : setting
+        },
+        function(data){
+            $("#api_user_key_<?php echo $_SESSION['user_id'];?>").html(data);
+        }
+    );
 }
  </script>

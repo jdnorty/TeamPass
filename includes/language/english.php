@@ -14,6 +14,7 @@
  */
 global $LANG;
 $LANG = array (
+    'clear_field' => 'Clear the field',
     'settings_u2f' => 'Enable U2F authentication',
     'settings_u2f_tip' => '',
     'u2f_otp' => 'U2F OTP',

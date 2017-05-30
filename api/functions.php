@@ -90,6 +90,14 @@ function teampass_get_keys() {
     return $response;
 }
 
+function teampass_get_keys_for_users() {
+    global $server, $user, $pass, $database, $link;
+    teampass_connect();
+    $response = DB::queryOneColumn("value", "select * from ".prefix_table("users")." WHERE type = %s AND api_user_key != 'none'", "api_user_key");
+
+    return $response;
+}
+
 function rest_head () {
     header('HTTP/1.1 402 Payment Required');
 }
@@ -168,8 +176,8 @@ function rest_delete () {
         teampass_connect();
         $category_query = "";
 
-        if ($GLOBALS['request'][0] == "write") {
-            if($GLOBALS['request'][1] == "category") {
+        if ($GLOBALS['request'][0] === "write") {
+            if($GLOBALS['request'][1] === "category") {
                 $array_category = explode(';',$GLOBALS['request'][2]);
 
                 foreach($array_category as $category) {
@@ -209,7 +217,7 @@ function rest_delete () {
                     $json['status'] = 'KO';
                 }
 
-            } elseif($GLOBALS['request'][1] == "item") {
+            } elseif($GLOBALS['request'][1] === "item") {
                 $array_category = explode(';',$GLOBALS['request'][2]);
                 $item = $GLOBALS['request'][3];
 
@@ -276,7 +284,11 @@ function rest_get () {
         $GLOBALS['request'] =  explode('/',$matches[2]);
     }
 
-    if(apikey_checker($GLOBALS['apikey'])) {
+    // check the access type
+    $GLOBALS['apikey_checked'] = apikey_checker($GLOBALS['apikey']);
+    $GLOBALS['user_apikey_checked'] = user_apikey_checker($GLOBALS['apikey']);
+
+    if($GLOBALS['apikey_checked'] === "1" || $GLOBALS['user_apikey_checked'] === "1") {
         global $server, $user, $pass, $database, $pre, $link;
         teampass_connect();
         $category_query = "";
@@ -289,8 +301,8 @@ function rest_get () {
             $GLOBALS['apikey']
         );
 
-        if ($GLOBALS['request'][0] == "read") {
-            if($GLOBALS['request'][1] == "folder") {
+        if ($GLOBALS['request'][0] === "read" && ($GLOBALS['apikey_checked'] === "1" || $GLOBALS['user_apikey_checked'] === "1")) {
+            if($GLOBALS['request'][1] === "folder") {
                 /*
                 * READ FOLDERS
                 */
@@ -350,7 +362,7 @@ function rest_get () {
                     $x++;
                 }
             }
-            else if($GLOBALS['request'][1] == "userpw") {
+            else if($GLOBALS['request'][1] === "userpw") {
                 /*
                 * READ USER ITEMS
                 */
@@ -435,7 +447,7 @@ function rest_get () {
                     $x++;
                 }
             }
-            else if($GLOBALS['request'][1] == "userfolders") {
+            else if($GLOBALS['request'][1] === "userfolders") {
                 /*
                 * READ USER FOLDERS
                 * Sends back a list of folders
@@ -479,7 +491,7 @@ function rest_get () {
                     }
                 }
             }
-            elseif($GLOBALS['request'][1] == "items") {
+            elseif($GLOBALS['request'][1] === "items") {
                 /*
                 * READ ITEMS asked
                 */
@@ -546,8 +558,8 @@ function rest_get () {
             } else {
                 rest_error ('EMPTY');
             }
-        } elseif ($GLOBALS['request'][0] == "find") {
-            if($GLOBALS['request'][1] == "item") {
+        } elseif ($GLOBALS['request'][0] === "find" && ($GLOBALS['apikey_checked'] === "1" || $GLOBALS['user_apikey_checked'] === "1")) {
+            if($GLOBALS['request'][1] === "item") {
                 /*
                 * FIND ITEMS in FOLDERS
                 */
@@ -624,8 +636,9 @@ function rest_get () {
                     rest_error ('EMPTY');
                 }
             }
-        } elseif ($GLOBALS['request'][0] == "add") {
-            if($GLOBALS['request'][1] == "item") {
+        } elseif ($GLOBALS['request'][0] === "add" && $GLOBALS['apikey_checked'] === "1") {
+            // ONLY if application apikey
+            if($GLOBALS['request'][1] === "item") {
                 // get sent parameters
                 $params = explode(';', base64_decode($GLOBALS['request'][2]));
                 if (count($params) != 9) {
@@ -771,7 +784,7 @@ function rest_get () {
              * Example: /api/index.php/add/user/U4;Nils;Laumaille;test;nils@laumaille.fr;Users;0;Managers,Users;0;1;1?apikey=sae6iekahxiseL3viShoo0chahc1ievei8aequi
              *
              */
-            elseif($GLOBALS['request'][1] == "user") {
+            elseif($GLOBALS['request'][1] === "user") {
 
                 // get user definition
                 $array_user = explode(';', base64_decode($GLOBALS['request'][2]));
@@ -792,7 +805,7 @@ function rest_get () {
                 $haspf = $array_user[10];
 
                 // Empty user
-                if (mysqli_escape_string($link, htmlspecialchars_decode($login)) == "") {
+                if (mysqli_escape_string($link, htmlspecialchars_decode($login)) === "") {
                     rest_error ('USERLOGINEMPTY');
                 }
                 // Check if user already exists
@@ -893,7 +906,7 @@ function rest_get () {
             * ADDING A FOLDER
             * <url to teampass>/api/index.php/add/folder/<title>;<complexity_level>;<parent_id>;<renewal_period>;<personal>?apikey=<valid api key>
             */
-            elseif($GLOBALS['request'][1] == "folder") {
+            elseif($GLOBALS['request'][1] === "folder") {
                 if (!empty($GLOBALS['request'][2])) {
                     // get sent parameters
                     $params = explode(';', base64_decode($GLOBALS['request'][2]));
@@ -997,11 +1010,11 @@ function rest_get () {
                     rest_error('SET_NO_DATA');
                 }
             }
-        } elseif ($GLOBALS['request'][0] == "update") {
+        } else if ($GLOBALS['request'][0] === "update" && $GLOBALS['apikey_checked'] === "1") {
             /*
             * Section dedicated for UPDATING
             */
-            if ($GLOBALS['request'][1] == "item") {
+            if ($GLOBALS['request'][1] === "item") {
                 /*
                 * Expected call format: .../api/index.php/update/item/<item_id>/<label>;<password>;<description>;<folder_id>;<login>;<email>;<url>;<tags>;<any one can modify>?apikey=<VALID API KEY>
                 */
@@ -1131,7 +1144,7 @@ function rest_get () {
             * UPDATING A FOLDER
             * <url to teampass>/api/index.php/update/folder/<folder_id>/<title>;<complexity_level>;<renewal_period>?apikey=<valid api key>
             */
-            else if($GLOBALS['request'][1] == "folder") {
+            else if($GLOBALS['request'][1] === "folder") {
                 if ($GLOBALS['request'][2] !== "" && is_numeric($GLOBALS['request'][2])) {
                     // get sent parameters
                     $params = explode(';', base64_decode($GLOBALS['request'][3]));
@@ -1208,7 +1221,7 @@ function rest_get () {
                     rest_error('NO_ITEM');
                 }
             }
-        } elseif ($GLOBALS['request'][0] == "auth") {
+        } elseif ($GLOBALS['request'][0] === "auth" && ($GLOBALS['apikey_checked'] === "1" || $GLOBALS['user_apikey_checked'] === "1")) {
             /*
             ** FOR SECURITY PURPOSE, it is mandatory to use SSL to connect your teampass instance. The user password is not encrypted!
             **
@@ -1308,7 +1321,7 @@ function rest_get () {
             } else {
                 rest_error ('AUTH_NO_IDENTIFIER');
             }
-        } elseif ($GLOBALS['request'][0] == "auth_tpc") {
+        } elseif ($GLOBALS['request'][0] === "auth_tpc") {
             /*
             ** TO BE USED ONLY BY TEAMPASS-CONNECT
             **
@@ -1431,7 +1444,7 @@ function rest_get () {
             } else {
                 rest_error ('AUTH_NO_IDENTIFIER');
             }
-        } elseif ($GLOBALS['request'][0] == "set") {
+        } elseif ($GLOBALS['request'][0] === "set") {
             /*
              * Expected call format: .../api/index.php/set/<login_to_save>/<password_to_save>/<url>/<user_login>/<user_password>/<label>/<protocol>?apikey=<VALID API KEY>
              * Example: https://127.0.0.1/teampass/api/index.php/set/newLogin/newPassword/newUrl/myLogin/myPassword?apikey=gu6Eexaewaishooph6iethoh5woh0yoit6ohquo
@@ -1568,7 +1581,7 @@ function rest_get () {
             } else {
                 rest_error ('AUTH_NO_IDENTIFIER');
             }
-        } elseif ($GLOBALS['request'][0] == "set_tpc") {
+        } elseif ($GLOBALS['request'][0] === "set_tpc") {
             /*
              * TO BE USED ONLY BY TEAMPASS-CONNECT
              */
@@ -1745,9 +1758,9 @@ function rest_get () {
         * Expected call format: .../api/index.php/delete/folder/<folder_id1;folder_id2;folder_id3>?apikey=<VALID API KEY>
         * Expected call format: .../api/index.php/delete/item>/<item_id1;item_id2;item_id3>?apikey=<VALID API KEY>
         */
-        elseif ($GLOBALS['request'][0] == "delete") {
+        elseif ($GLOBALS['request'][0] === "delete") {
             $_SESSION['settings']['cpassman_dir'] = "..";
-            if($GLOBALS['request'][1] == "folder") {
+            if($GLOBALS['request'][1] === "folder") {
                 $array_category = explode(';', $GLOBALS['request'][2]);
 
                 // get user info
@@ -1834,7 +1847,7 @@ function rest_get () {
 
                 $json['status'] = 'OK';
 
-            } elseif($GLOBALS['request'][1] == "item") {
+            } elseif($GLOBALS['request'][1] === "item") {
                 $array_items = explode(';', $GLOBALS['request'][2]);
 
                 // get user info
@@ -1882,7 +1895,7 @@ function rest_get () {
             } else {
                 rest_error ('EMPTY');
             }
-        } else if ($GLOBALS['request'][0] == "new_password") {
+        } else if ($GLOBALS['request'][0] === "new_password") {
             if (!empty($GLOBALS['request'][1])) {
                 $params = explode(";", $GLOBALS['request'][1]);
 
@@ -2119,6 +2132,16 @@ function rest_error ($type,$detail = 'N/A') {
 function apikey_checker ($apikey_used) {
     teampass_connect();
     $apikey_pool = teampass_get_keys();
+    if (in_array($apikey_used, $apikey_pool)) {
+        return(1);
+    } else {
+        rest_error('APIKEY',$apikey_used);
+    }
+}
+
+function user_apikey_checker ($apikey_used) {
+    teampass_connect();
+    $apikey_pool = teampass_get_keys_for_users();
     if (in_array($apikey_used, $apikey_pool)) {
         return(1);
     } else {

@@ -475,5 +475,4 @@ switch ($_POST['type']) {
         echo '[{"error" : ""}]';
 
         break;
-
 }

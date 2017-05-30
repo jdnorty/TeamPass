@@ -1719,16 +1719,24 @@ if (!empty($_POST['type'])) {
 }
 // # NEW LOGIN FOR USER HAS BEEN DEFINED ##
 elseif (!empty($_POST['newValue'])) {
-    $value = explode('_', $_POST['id']);
+    $strposition = strrpos($_POST['id'], '_');
+    $value[0] = substr($_POST['id'], 0, $strposition);
+    $value[1] = substr($_POST['id'], $strposition + 1);
+
+    //$value = explode('_', $_POST['id']);
     if ($value[0] === "userlanguage") {
         $value[0]  = "user_language";
         $_POST['newValue'] = strtolower($_POST['newValue']);
+    } else if ($_POST['newValue'] === "new_api_key") {
+        // special case for USER API KEY
+        $_POST['newValue'] = GenerateCryptKey(50);
+        $_SESSION['user_settings']['api_user_key'] = $_POST['newValue'];
     }
     DB::update(
         prefix_table("users"),
         array(
             $value[0] => $_POST['newValue']
-           ),
+        ),
         "id = %i",
         $value[1]
     );

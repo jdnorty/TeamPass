@@ -748,7 +748,7 @@ $htmlHeaders .= '
             bgiframe: true,
             modal: true,
             autoOpen: false,
-            width: 500,
+            width: 540,
             height: 520,
             title: "'.$LANG['user_profile_dialogbox_menu'].'",
             buttons: {
@@ -757,7 +757,7 @@ $htmlHeaders .= '
                 }
             },
             close: function() {
-                $("#dialog_user_profil").dialog("option", "height", 430);
+                $("#dialog_user_profil").dialog("option", "height", 520);
                 $("#div_user_profil").html("<i class=\'fa fa-cog fa-spin fa-2x\'></i>&nbsp;<b>'.$LANG['please_wait'].'</b>");
             }
         });
