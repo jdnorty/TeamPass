@@ -724,8 +724,7 @@ function identifyUser($sentData)
             echo '[{"value" : "u2f", "user_admin":"", "initial_url" : "", "error" : "u2f_no_otp"}]';
             exit();
         } else if (isset($dataReceived['u2f_otp']) && !empty($dataReceived['u2f_otp'])) {
-            // user provides an OTP
-//print_r($dataReceived);
+            //-- user provides an OTP
 
             // if user enter new credentials
             if (isset($dataReceived['user_u2f_id']) && isset($dataReceived['user_u2f_key']) && !empty($dataReceived['user_u2f_id']) && !empty($dataReceived['user_u2f_key'])) {
@@ -753,8 +752,6 @@ function identifyUser($sentData)
             // now verify Auth
             require_once $_SESSION['settings']['cpassman_dir'].'/includes/libraries/Authentication/yubico/Yubico.php';
 
-            //$key = "oBVbNt7IZehZGR99rvq8d6RZ1DM=";
-            //$id = "1851";
             $yubi = new Auth_Yubico(
                 $data['u2f_id'],
                 $data['u2f_key'],
