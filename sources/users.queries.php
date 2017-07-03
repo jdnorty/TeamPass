@@ -268,7 +268,7 @@ if (!empty($_POST['type'])) {
                     $dataReceived['email']
                 );
                 // update LOG
-                logEvents('user_mngt', 'at_user_added', $_SESSION['user_id'], $_SESSION['login'], $new_user_id);
+                logEvents('user_mngt', 'at_user_added', $_SESSION['user_id'], $_SESSION['login'], $new_user_id, $login);
 
                 echo '[ { "error" : "no" } ]';
             } else {
@@ -323,7 +323,7 @@ if (!empty($_POST['type'])) {
                     $tree->rebuild();
                 }
                 // update LOG
-        logEvents('user_mngt', 'at_user_deleted', $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+        logEvents('user_mngt', 'at_user_deleted', $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
             } else {
                 // lock user in database
                 DB::update(
@@ -336,7 +336,7 @@ if (!empty($_POST['type'])) {
                     $_POST['id']
                 );
                 // update LOG
-        logEvents('user_mngt', 'at_user_locked', $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+        logEvents('user_mngt', 'at_user_locked', $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
             }
             echo '[ { "error" : "no" } ]';
             break;
@@ -365,7 +365,7 @@ if (!empty($_POST['type'])) {
                 $_POST['id']
             );
             // update LOG
-        logEvents('user_mngt', 'at_user_email_changed:'.$data['email'], intval($_SESSION['user_id']), $_SESSION['login'], intval($_POST['id']));
+        logEvents('user_mngt', 'at_user_email_changed:'.$data['email'], intval($_SESSION['user_id']), $_SESSION['login'], intval($_POST['id']), $_POST['user']);
             echo '[{"error" : "no"}]';
             break;
         /**
@@ -763,7 +763,7 @@ if (!empty($_POST['type'])) {
                 $_POST['id']
             );
             // update LOG
-        logEvents('user_mngt', 'at_user_unlocked', $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+        logEvents('user_mngt', 'at_user_unlocked', $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
             break;
         /*
         * Check the domain
@@ -1264,7 +1264,7 @@ if (!empty($_POST['type'])) {
                     $tree->rebuild();
                 }
                 // update LOG
-                logEvents('user_mngt', 'at_user_deleted', $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+                logEvents('user_mngt', 'at_user_deleted', $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
 
             } else {
 
@@ -1312,12 +1312,12 @@ if (!empty($_POST['type'])) {
 
                 // update LOG
                 if ($oldData['email'] != mysqli_escape_string($link, htmlspecialchars_decode($dataReceived['email']))) {
-                    logEvents('user_mngt', 'at_user_email_changed:'.$oldData['email'], intval($_SESSION['user_id']), $_SESSION['login'], intval($_POST['id']));
+                    logEvents('user_mngt', 'at_user_email_changed:'.$oldData['email'], intval($_SESSION['user_id']), $_SESSION['login'], intval($_POST['id']), $_POST['user']);
                 }
 
                 if ($oldData['disabled'] != $accountDisabled) {
                     // update LOG
-                    logEvents('user_mngt', $logDisabledText, $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+                    logEvents('user_mngt', $logDisabledText, $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
                 }
             }
 
@@ -1635,7 +1635,8 @@ elseif (!empty($_POST['newValue'])) {
         $value[1]
     );
     // update LOG
-    logEvents('user_mngt', 'at_user_new_'.$value[0].':'.$value[1], $_SESSION['user_id'], $_SESSION['login'], $_POST['id']);
+    logEvents('user_mngt', 'at_user_new_'.$value[0].':'.$value[1], $_SESSION['user_id'], $_SESSION['login'], $_POST['id'], $_POST['user']);
+
     // refresh SESSION if requested
     if ($value[0] === "treeloadstrategy") {
         $_SESSION['user_settings']['treeloadstrategy'] = $_POST['newValue'];
