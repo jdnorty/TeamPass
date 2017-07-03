@@ -5,7 +5,7 @@ namespace adLDAP;
  * Version 5.0.0
  * 
  * PHP Version 5 with SSL and LDAP support
- * 
+ * %
  * Written by Scott Barnett, Richard Hyland
  *   email: scott@wiggumworld.com, adldap@richardhyland.com
  *   http://github.com/adldap/adLDAP
@@ -55,6 +55,8 @@ require_once(dirname(__FILE__).'/classes/adLDAPContacts.php');
 require_once(dirname(__FILE__).'/classes/adLDAPExchange.php');
 require_once(dirname(__FILE__).'/classes/adLDAPComputers.php');
 
+putenv('LDAPTLS_REQCERT=never');
+
 class adLDAP {
     
     /**
@@ -78,6 +80,13 @@ class adLDAP {
      * The default port for LDAPS SSL connections
      */
     const ADLDAP_LDAPS_PORT = '636';
+    
+    /**
+     * The account prefix for your domain, can be set when the class is invoked
+     * 
+     * @var string
+     */   
+    protected $accountPrefix = "mydomain";
     
     /**
      * The account suffix for your domain, can be set when the class is invoked
@@ -357,7 +366,17 @@ class adLDAP {
     /**
      * Getters and Setters
      */
-    
+
+     /**
+     * Set the account prefix
+     *
+     * @param string $accountPrefix
+     * @return void
+     */
+    public function setAccountPrefix($accountPrefix) {
+            $this->accountPrefix = $accountPrefix;
+    }
+
     /**
      * Set the account suffix
      * 
@@ -569,7 +588,8 @@ class adLDAP {
     function __construct($options = array()) {
         // You can specifically overide any of the default configuration options setup above
         if (count($options) > 0) {
-            if (array_key_exists("account_suffix", $options)) { $this->accountSuffix = $options["account_suffix"]; }
+            if (array_key_exists("account_prefix",$options)) { $this->accountPrefix = $options["account_prefix"]; }
+	    if (array_key_exists("account_suffix", $options)) { $this->accountSuffix = $options["account_suffix"]; }
             if (array_key_exists("base_dn", $options)) { $this->baseDn = $options["base_dn"]; }
             if (array_key_exists("domain_controllers", $options)) { 
                 if (!is_array($options["domain_controllers"])) { 
@@ -695,7 +715,12 @@ class adLDAP {
                 return true;
             }
         }
-        
+       
+ 	// Prefix Username with domain
+	$prefix = $this->accountPrefix;
+	if ($prefix) {
+		$username = $prefix."\\".$username;
+	}
         // Bind as the user        
         $ret = true;
         $this->ldapBind = @ldap_bind($this->ldapConnection, $username.$this->accountSuffix, $password);
