@@ -1495,7 +1495,6 @@ function AfficherDetailsItem(id, salt_key_required, expired_item, restricted, di
                             clipboard_pw.on('success', function(e) {
                                 $("#message_box").html("<?php echo addslashes($LANG['pw_copied_clipboard']); ?>").show().fadeOut(1000);
                                 itemLog("item_password_copied");
-
                                 e.clearSelection();
                             });
 
@@ -3789,14 +3788,20 @@ var showPwd = function(){
 */
 function itemLog(log_case)
 {
+var folders = [];
+    /* Custom Changes */
+    var folders = [];
+    $("#items_path_var a").each(function() { folders.push($(this).text()) });
     $.post(
         "sources/items.logs.php",
         {
+            folder_list : folders,
+            id_login    : $('#id_login').text(),
             type        : log_case,
             id_item     : $('#id_item').val(),
             folder_id   : $('#hid_cat').val(),
-        hid_label   : $('#hid_label').val(),
-            key         : "<?php echo $_SESSION['key']; ?>"
+            hid_label   : $('#hid_cat').val(),
+            key         : "<?php echo $_SESSION['key'];?>"
         }
     );
 }
