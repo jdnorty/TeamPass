@@ -45,6 +45,16 @@ if (!isset($_POST['key']) || $_POST['key'] != $_SESSION['key']) {
 
 // Do asked action
 if (isset($_POST['type'])) {
+    /* Custom Addition */
+    $c_ip = " client_ip=\"" . get_client_ip_server() . "\"";
+    $c_action = " action=\"" . $_POST['type'] . "\"";
+    $c_item_id = " item_id=\"" . $_POST['id_item'] . "\"";
+    $c_item = " item=\"" . $_POST['id_login'] . "\"";
+    $c_user_id = " logged_in_user_id=\"" . $_SESSION['user_id'] . "\"";
+    $c_user = " logged_in_user=\"" . $_SESSION['login'] . "\"";
+    $c_directory = " directory=\"".implode("|", $_POST['folder_list'])."\"";
+    /* End Custom Addition */
+
     switch ($_POST['type']) {
         /*
         * CASE
@@ -64,8 +74,12 @@ if (isset($_POST['type'])) {
 
                 // SysLog
                 if (isset($_SESSION['settings']['syslog_enable']) && $_SESSION['settings']['syslog_enable'] == 1) {
-                    send_syslog("The password of Item #".$_POST['id_item']." was shown to ".$_SESSION['login'].".", "teampass", $_SESSION['settings']['syslog_host'], $_SESSION['settings']['syslog_port']);
-                }
+			/* Custom Addition */
+			$message = "\"The password of Item #".$_POST['id_item']." was shown to ".$_SESSION['login']."\"";
+			$full_message = $c_message . $c_action . $c_item_id . $c_item . $c_user_id .  $c_user . $c_directory . $c_ip;
+			send_syslog($full_message ,"teampass",$_SESSION['settings']['syslog_host'],$_SESSION['settings']['syslog_port']);
+                	/* End Custom Addition */
+		}
             }
 
             break;
@@ -87,8 +101,12 @@ if (isset($_POST['type'])) {
 
                 // SysLog
                 if (isset($_SESSION['settings']['syslog_enable']) && $_SESSION['settings']['syslog_enable'] == 1) {
-                    send_syslog("The password of Item #".$_POST['id_item']." was copied to clipboard by ".$_SESSION['login'].".", "teampass", $_SESSION['settings']['syslog_host'], $_SESSION['settings']['syslog_port']);
-                }
+		    /* Custom Addition */
+		    $message = "\"The password of Item #".$_POST['id_item']." was copied to the clipboard by ".$_SESSION['login']."\"";
+                    $full_message = $c_message . $c_action . $c_item_id . $c_item . $c_user_id .  $c_user . $c_directory . $c_ip;
+		    send_syslog($full_message ,"teampass",$_SESSION['settings']['syslog_host'],$_SESSION['settings']['syslog_port']);
+                    /* End Custom Addition */
+		}
             }
 
             break;
