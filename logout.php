@@ -57,13 +57,13 @@ if (!empty($user_id) && $user_id != "") {
         "id=%i",
         $user_id
     );
-
+    
     //Log into DB the user's disconnection
     if (
-        (isset($_SESSION['settings']['log_connections']) && $_SESSION['settings']['log_connections'] == 1) &&
-        (isset($_SESSION['login']) && $_SESSION['login'] != "")
+	(isset($_SESSION['settings']['log_connections']) && $_SESSION['settings']['log_connections'] == 1) &&
+	(isset($_SESSION['login']) && $_SESSION['login'] != "")
     ) {
-        logEvents('user_connection', 'disconnection', $user_id, $_SESSION['login']);
+	 logEvents('user_connection', 'disconnection', $user_id, $_SESSION['login']);
     }
 }
 
@@ -73,10 +73,10 @@ $_SESSION = array();
 unset($_SESSION);
 
 echo '
-<script language="javascript" type="text/javascript">
-<!--
-sessionStorage.clear();
-setTimeout(function(){document.location.href="index.php"}, 1);
+    <script language="javascript" type="text/javascript">
+    <!--
+        sessionStorage.clear();
+        setTimeout(function(){document.location.href="index.php"}, 1);
     -->
     </script>';
 
