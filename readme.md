@@ -1,6 +1,8 @@
 # Teampass
 
-Teampass is a Collaborative Passwords Manager
+Teampass is a Collaborative Passwords Manager.  
+
+This version is a fork of nilsteampassnet.
 
 > Copyright (c) 2009-2017, [Nils Laumaillé] (Nils@TeamPass.net)
 
