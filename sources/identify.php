@@ -309,7 +309,8 @@ function identifyUser($sentData)
     if ($debugLdap == 1) {
         // create temp file
         $dbgLdap = fopen($_SESSION['settings']['path_to_files_folder']."/ldap.debug.txt", "w");
-        fputs(
+        /* Custom Addition */
+	fputs(
             $dbgLdap,
             "Get all LDAP params : \n".
             'mode : '.$_SESSION['settings']['ldap_mode']."\n".
@@ -319,7 +320,9 @@ function identifyUser($sentData)
             'bind_dn : '.$_SESSION['settings']['ldap_bind_dn']."\n".
             'bind_passwd : '.$_SESSION['settings']['ldap_bind_passwd']."\n".
             'user_attribute : '.$_SESSION['settings']['ldap_user_attribute']."\n".
+            'account_prefix : '.$_SESSION['settings']['ldap_prefix']."\n".
             'account_suffix : '.$_SESSION['settings']['ldap_suffix']."\n".
+            'ldap_groups : '.$_SESSION['settings']['ldap_groups']."\n".
             'domain_controllers : '.$_SESSION['settings']['ldap_domain_controler']."\n".
             'port : '.$_SESSION['settings']['ldap_port']."\n".
             'use_ssl : '.$_SESSION['settings']['ldap_ssl']."\n".
@@ -447,11 +450,14 @@ function identifyUser($sentData)
             }
         } else {
             if ($debugLdap == 1) {
+		/* Custom Addition */
                 fputs(
                     $dbgLdap,
                     "Get all ldap params : \n".
                     'base_dn : '.$_SESSION['settings']['ldap_domain_dn']."\n".
+                    'account_prefix : '.$_SESSION['settings']['ldap_prefix']."\n".
                     'account_suffix : '.$_SESSION['settings']['ldap_suffix']."\n".
+                    'ldap_groups : '.$_SESSION['settings']['ldap_groups']."\n".
                     'domain_controllers : '.$_SESSION['settings']['ldap_domain_controler']."\n".
                     'port : '.$_SESSION['settings']['ldap_port']."\n".
                     'use_ssl : '.$_SESSION['settings']['ldap_ssl']."\n".
@@ -468,9 +474,11 @@ function identifyUser($sentData)
                 //Multiple Domain Names
                 $ldap_suffix = $_SESSION['settings']['ldap_suffix'];
             }
+    	    /* Custom Addition */
             $adldap = new adLDAP\adLDAP(
                 array(
                     'base_dn' => $_SESSION['settings']['ldap_domain_dn'],
+                    'account_prefix' => $_SESSION['settings']['ldap_prefix'],
                     'account_suffix' => $ldap_suffix,
                     'domain_controllers' => explode(",", $_SESSION['settings']['ldap_domain_controler']),
                     'port' => $_SESSION['settings']['ldap_port'],
@@ -489,10 +497,17 @@ function identifyUser($sentData)
             } else {
                 $auth_username = $username;
             }
+ 	    /* Custom Addition */	
+	    // LDAP Groups
+	    $c_groups = $_SESSION['settings']['ldap_groups'];
+   	    $group_arr = json_decode(urldecode($c_groups));
+            /* End Custom Addition */
 
-            // authenticate the user
+	    // authenticate the user
             if ($adldap->authenticate($auth_username, html_entity_decode($passwordClear))) {
-                $ldapConnection = true;
+	      /* Custom Addition - Added if statement */
+	      if ($adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL)) {
+	  	$ldapConnection = true;
                 // Update user's password
                 $data['pw'] = $pwdlib->createPasswordHash($passwordClear);
 
@@ -511,6 +526,7 @@ function identifyUser($sentData)
                     // No user creation is requested
                     $proceedIdentification = true;
                 }
+	      } else {$ldapConnection = false;}
             } else {
                 $ldapConnection = false;
             }
