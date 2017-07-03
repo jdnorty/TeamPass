@@ -12,10 +12,12 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
-
-
+// ini_set("display_errors", true);
 require_once 'sources/SecureHandler.php';
-session_start();
+if( !session_id() || session_status() == PHP_SESSION_NONE )
+{
+    session_start();
+}
 
 // Update table by deleting ID
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
@@ -26,8 +28,12 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
     $user_id = "";
 }
 
-if (!empty($user_id)) {
+
+if (!empty($user_id) && $user_id != "") {
+    require_once $_SESSION['settings']['cpassman_dir'].'/sources/main.functions.php';
+
     // connect to the server
+
     require_once './includes/config/settings.php';
     require_once './includes/libraries/Database/Meekrodb/db.class.php';
     DB::$host = $server;
@@ -51,9 +57,13 @@ if (!empty($user_id)) {
         "id=%i",
         $user_id
     );
+
     //Log into DB the user's disconnection
-    if (isset($_SESSION['settings']['log_connections']) && $_SESSION['settings']['log_connections'] == 1) {
-        logEvents('user_connection', 'disconnection', $user_id, @$_SESSION['login']);
+    if (
+        (isset($_SESSION['settings']['log_connections']) && $_SESSION['settings']['log_connections'] == 1) &&
+        (isset($_SESSION['login']) && $_SESSION['login'] != "")
+    ) {
+        logEvents('user_connection', 'disconnection', $user_id, $_SESSION['login']);
     }
 }
 
@@ -63,9 +73,11 @@ $_SESSION = array();
 unset($_SESSION);
 
 echo '
-    <script language="javascript" type="text/javascript">
-    <!--
-        sessionStorage.clear();
-        setTimeout(function(){document.location.href="index.php"}, 1);
+<script language="javascript" type="text/javascript">
+<!--
+sessionStorage.clear();
+setTimeout(function(){document.location.href="index.php"}, 1);
     -->
     </script>';
+
+?>
