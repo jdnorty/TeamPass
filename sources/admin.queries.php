@@ -2088,8 +2088,10 @@ $line = "qsd";
                 $ldapConnection = "Error - Could not connect to server!";
             }
         } else {
+	    /* Custom Addition - Added ldap_prefix */
             $debug_ldap .= "Get all ldap params: <br/>".
                 '  - base_dn : '.$dataReceived[0]['ldap_domain_dn']."<br/>".
+                '  - account_prefix : '.$dataReceived[0]['ldap_prefix']."<br/>".
                 '  - account_suffix : '.$dataReceived[0]['ldap_suffix']."<br/>".
                 '  - domain_controllers : '.$dataReceived[0]['ldap_domain_controler']."<br/>".
                 '  - port : '.$dataReceived[0]['ldap_port']."<br/>".
@@ -2105,9 +2107,11 @@ $line = "qsd";
             } elseif ($dataReceived[0]['ldap_type'] === 'windows' && $ldap_suffix === '') { //Multiple Domain Names
                 $ldap_suffix = $dataReceived[0]['ldap_suffix'];
             }
+	    /* Custom Addition - Added ldap_prefix */
             $adldap = new adLDAP\adLDAP(
                 array(
                     'base_dn' => $dataReceived[0]['ldap_domain_dn'],
+                    'account_prefix' => $dataReceived[0]['ldap_prefix'],
                     'account_suffix' => $ldap_suffix,
                     'domain_controllers' => explode(",", $dataReceived[0]['ldap_domain_controler']),
                     'port' => $dataReceived[0]['ldap_port'],
@@ -2131,6 +2135,15 @@ $line = "qsd";
             } else {
                 $ldapConnection = "Not possible to get connected with this user";
             }
+	    /* Custom Addition */
+	    $c_groups = $dataReceived[0]['ldap_groups'];
+            $group_arr = json_decode(urldecode($c_groups));
+	    $res = $adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL);	    
+ 	    $converted_res = ($res) ? 'Success' : 'Failed';
+
+	    $debug_ldap .= "LDAP Groups: ".implode(",",$group_arr)."<br/><br/>";
+	    $debug_ldap .= "LDAP Group Test: ".$converted_res."<br/><br/>";
+	    /* End Custom Addition */
 
             $debug_ldap .= "After authenticate : ".$adldap->getLastError()."<br/><br/>".
                 "ldap status : ".$ldapConnection; //Debug
