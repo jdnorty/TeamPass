@@ -289,14 +289,33 @@ class adLDAPUsers {
         
         // Get a list of the groups
         $groups = $this->groups($username, $recursive, $isGUID);
-        
+        $group = strtolower($group); 
+        $groups = array_map('strtolower', $groups);
+	
         // Return true if the specified group is in the group list
         if (in_array($group, $groups)) { 
             return true; 
         }
         return false;
     }
-    
+   
+    public function inGroups($username, $groups, $recursive = NULL, $isGUID = false) {
+        if ($username === NULL) { return false; }
+        if ($groups === NULL) { return false; }
+        if (!$this->adldap->getLdapBind()) { return false; }
+        if ($recursive === NULL) { $recursive = $this->adldap->getRecursiveGroups(); } // Use the default option if they haven't set it
+
+        // Get a list of the groups
+        $r_groups = $this->groups($username, $recursive, $isGUID);
+        $groups = array_map('strtolower', $groups);
+        $r_groups = array_map('strtolower', $r_groups);
+        // Return true if the specified group is in the group list
+        if (!empty(array_intersect($groups, $r_groups))) {
+            return true;
+        }
+        return false;
+    }
+ 
     /**
      * Determine a user's password expiry date
      * 
