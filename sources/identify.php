@@ -450,7 +450,7 @@ function identifyUser($sentData)
             }
         } else {
             if ($debugLdap == 1) {
-		/* Custom Addition */
+		            /* Custom Addition - Added prefix and groups */
                 fputs(
                     $dbgLdap,
                     "Get all ldap params : \n".
@@ -497,18 +497,26 @@ function identifyUser($sentData)
             } else {
                 $auth_username = $username;
             }
- 	    /* Custom Addition */	
-	    // LDAP Groups
-	    $c_groups = $_SESSION['settings']['ldap_groups'];
-   	    $group_arr = json_decode(urldecode($c_groups));
-            /* End Custom Addition */
+ 	         /* Custom Addition */
+	         // LDAP Groups
+	         $c_groups = $_SESSION['settings']['ldap_groups'];
+   	       $group_arr = json_decode(urldecode($c_groups));
+           /* End Custom Addition */
 
-	    // authenticate the user
-            if ($adldap->authenticate($auth_username, html_entity_decode($passwordClear))) {
-	      /* Custom Addition - Added if statement */
-	      if ($adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL)) {
-	  	$ldapConnection = true;
-                // Update user's password
+	         // authenticate the user
+           if ($adldap->authenticate($auth_username, html_entity_decode($passwordClear))) {
+             /* Custom Addition - Added if statement */
+             $res = $adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL);
+             if ( in_array('result', $group_result) && $group_result['result'] ) {
+                include_once 'identify.queries.php';
+                if (function_exists('checkUserRoles')) {
+                  $roles = $group_result['groups'];
+                  if ($roles && $roles != "") {
+                    $role_result = checkUserRoles($roles, $auth_username);
+                  }
+                }
+                $ldapConnection = true;
+                // Update user's password/
                 $data['pw'] = $pwdlib->createPasswordHash($passwordClear);
 
                 // Do things if user exists in TP
@@ -526,10 +534,12 @@ function identifyUser($sentData)
                     // No user creation is requested
                     $proceedIdentification = true;
                 }
-	      } else {$ldapConnection = false;}
-            } else {
-                $ldapConnection = false;
-            }
+  	      } else {
+            $ldapConnection = false;
+          }
+        } else {
+          $ldapConnection = false;
+        }
             if ($debugLdap == 1) {
                 fputs(
                     $dbgLdap,

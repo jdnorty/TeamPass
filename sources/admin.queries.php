@@ -2137,9 +2137,9 @@ $line = "qsd";
             }
 	    /* Custom Addition */
 	    $c_groups = $dataReceived[0]['ldap_groups'];
-            $group_arr = json_decode(urldecode($c_groups));
-	    $res = $adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL);	    
- 	    $converted_res = ($res) ? 'Success' : 'Failed';
+      $group_arr = json_decode(urldecode($c_groups));
+	    $res = $adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL);
+ 	    $converted_res = ($res['result']) ? 'Success' : 'Failed';
 
 	    $debug_ldap .= "LDAP Groups: ".implode(",",$group_arr)."<br/><br/>";
 	    $debug_ldap .= "LDAP Group Test: ".$converted_res."<br/><br/>";
