@@ -1,5 +1,5 @@
 <?php
-/**
+/** 
  * @file          admin.php
  * @author        Nils Laumaillé
  * @version       2.1.27
