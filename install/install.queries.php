@@ -271,7 +271,7 @@ if (isset($_POST['type'])) {
                             `viewed_no` int(12) NOT null DEFAULT '0',
                             `complexity_level` varchar(3) NOT null DEFAULT '-1',
                             `auto_update_pwd_frequency` tinyint(2) NOT null DEFAULT '0',
-                            `auto_update_pwd_next_date` int(15) NOT null DEFAULT '0',
+                            `auto_update_pwd_next_date` varchar(100) NOT null DEFAULT '0',
                             `encryption_type` VARCHAR(20) NOT NULL DEFAULT 'not_set',
                             PRIMARY KEY (`id`),
                             KEY    `restricted_inactif_idx` (`restricted_to`,`inactif`)
@@ -435,7 +435,8 @@ global \$SETTINGS;
                             array('admin', 'agses_authentication_enabled', '0'),
                             array('admin', 'item_extra_fields', '0'),
                             array('admin', 'saltkey_ante_2127', 'none'),
-                            array('admin', 'migration_to_2127', 'done')
+                            array('admin', 'migration_to_2127', 'done'),
+                            array('admin', 'files_with_defuse', 'done')
                         );
                         foreach ($aMiscVal as $elem) {
                             //Check if exists before inserting
@@ -847,7 +848,7 @@ global \$SETTINGS;
                         $tmp = mysqli_num_rows(mysqli_query($dbTmp, "SELECT * FROM `".$var['tbl_prefix']."users` WHERE login = 'admin'"));
                         if ($tmp == 0) {
                             $mysqli_result = mysqli_query($dbTmp,
-                                "INSERT INTO `".$var['tbl_prefix']."users` (`id`, `login`, `pw`, `admin`, `gestionnaire`, `personal_folder`, `groupes_visibles`, `email`, `encrypted_psk`) VALUES ('1', 'admin', '".bCrypt($var['admin_pwd'], '13')."', '1', '0', '0', '', '', '')"
+                                "INSERT INTO `".$var['tbl_prefix']."users` (`id`, `login`, `pw`, `admin`, `gestionnaire`, `personal_folder`, `groupes_visibles`, `email`, `encrypted_psk`, `last_pw_change`) VALUES ('1', 'admin', '".bCrypt($var['admin_pwd'], '13')."', '1', '0', '0', '', '', '', '".time()."')"
                             );
                         } else {
                             $mysqli_result = mysqli_query($dbTmp, "UPDATE `".$var['tbl_prefix']."users` SET `pw` = '".bCrypt($var['admin_pwd'], '13')."' WHERE login = 'admin' AND id = '1'");
@@ -1070,8 +1071,10 @@ if (file_exists(\"".str_replace('\\', '/', $skFile)."\")) {
             require_once 'libs/aesctr.php'; // AES Counter Mode implementation
             $activity = Encryption\Crypt\aesctr::decrypt($_POST['activity'], "cpm", 128);
             $task = Encryption\Crypt\aesctr::decrypt($_POST['task'], "cpm", 128);
+            $json = Encryption\Crypt\aesctr::decrypt($_POST['db'], "cpm", 128);
+            $db = json_decode($json, true);
             // launch
-            $dbTmp = @mysqli_connect($_SESSION['db_host'], $_SESSION['db_login'], $_SESSION['db_pw'], $_SESSION['db_bdd'], $_SESSION['db_port']);
+            $dbTmp = @mysqli_connect($db['db_host'], $db['db_login'], $db['db_pw'], $db['db_bdd'], $db['db_port']);
 
             if ($activity == "file") {
                 if ($task == "deleteInstall") {
