@@ -43,6 +43,15 @@ spl_autoload_register(
 
 class IdentifyException extends CustomException {}
 
+class Identify {
+
+  protected static $debug = true;       //Can be used in order to debug
+
+  function __construct()
+  {
+    Identify::setupDbConnection();
+    $this->logger = new Logger(Identify::$debug);
+  }
 
   function checkUserRoles ($roles, $user_login = "") {
     // Outer try block
@@ -62,8 +71,8 @@ class IdentifyException extends CustomException {}
       $found_user_id    = $user_id && $user_id !== "";
       $c_user           = $user_login ?: $user_id;
 
-      $logger->log("*************************************************************************");
-      $logger->log("Starting User Role Verification for => ". $c_user);
+      $this->logger->log("*************************************************************************");
+      $this->logger->log("Starting User Role Verification for => ". $c_user);
 
       if ( !( $found_user_login || $found_user_id ) )
         throw new IdentifyException("Exiting, Missing User Information for => " . $c_user . ". Role => ". $role_name .", Error Code => " . $ret_val['error_code'], -1);
@@ -71,8 +80,8 @@ class IdentifyException extends CustomException {}
       setupDbConnection();
 
       // Get user data
-      ($found_user_login && $user_info = getUserByLogin($user_login)) ||
-      ($found_user_id && $user_info = getUserById($user_id));
+      ($found_user_login && $user_info = $this->getUserByLogin($user_login)) ||
+      ($found_user_id && $user_info = $this->getUserById($user_id));
       if ( !$user_info )
         throw new IdentifyException("User Info is in an unnexceptable format. Id => " . $user_id . ", login => " . $user_login, -1);
 
@@ -83,14 +92,14 @@ class IdentifyException extends CustomException {}
         throw new IdentifyException("User info couldn't be retrieved from database.", -2);
 
       $user_role_ids = array_filter(explode(";", $c_fonction_ids));
-      $logger->log("User's Current Fonction Ids: " . $c_fonction_ids);
+      $this->logger->log("User's Current Fonction Ids: " . $c_fonction_ids);
 
       // Loop through array of groups the user belongs to
       foreach ( $roles as $role_name ) {
         $role_name = ucwords(strtolower(stripslashes($role_name)));                     // Convert to Role naming standard
-        $logger->log("Checking if User is already in role => ". $role_name);
+        $this->logger->log("Checking if User is already in role => ". $role_name);
 
-        $role_info = getRole($role_name);                                               // Check if Group already exists
+        $role_info = $this->getRole($role_name);                                               // Check if Group already exists
         $role_id   = isset($role_info['result']) ? $role_info['result']['id'] : false;  // Role Id from DB query, if false if no role found
 
         // Inner try block
@@ -100,13 +109,13 @@ class IdentifyException extends CustomException {}
 
           if ( $role_id ) {
             // Group Exists
-            $logger->log("Found role id #" . $role_id . " in the database that matches the query criteria: Title => " . $role_name);
+            $this->logger->log("Found role id #" . $role_id . " in the database that matches the query criteria: Title => " . $role_name);
           } else {
             // Group does not exists - Insert new role into DB
-            $logger->log("Attempting to add new Role => ". $role_name);
-            $role_info = addRole($role_name, $role_complexity);
+            $this->logger->log("Attempting to add new Role => ". $role_name);
+            $role_info = $this->addRole($role_name, $role_complexity);
             $role_id   = isset($role_info['result']) ? $role_info['result'] : false;  // Role Id from DB insert, if false if no role created
-            $logger->log("Created role id #" . $role_id . " in the database because no matches were found based on the query criteria: Title => " . $role_name);
+            $this->logger->log("Created role id #" . $role_id . " in the database because no matches were found based on the query criteria: Title => " . $role_name);
             unset($role_info); // Clear variable
           }
 
@@ -114,7 +123,7 @@ class IdentifyException extends CustomException {}
             throw new IdentifyException("Could not retrieve the Role's Id value.", -2);
 
           if ( in_array($role_id, $user_role_ids) ) {
-            $logger->log("User is already a memeber of Role => " . $role_name . ", Role Id => " . $role_id);
+            $this->logger->log("User is already a memeber of Role => " . $role_name . ", Role Id => " . $role_id);
             DB::rollback();
             continue;
           }
@@ -124,15 +133,15 @@ class IdentifyException extends CustomException {}
           $n_fonction_ids = implode(";", $user_role_ids);
 
           // Update user's Roles
-          $update = updateUserRoles($c_user_id, $n_fonction_ids);
-          $logger->log("Adding Role => " . $role_name . " to user profile");
+          $update = $this->updateUserRoles($c_user_id, $n_fonction_ids);
+          $this->logger->log("Adding Role => " . $role_name . " to user profile");
 
           if ( $update['result']) {
             $ret_val['result'] = true;
             $_SESSION['user_roles'] = explode(";", $fonction_id);
-            $logger->log("Committing changes to database.");
+            $this->logger->log("Committing changes to database.");
             DB::commit();                                                       // Commit all changes
-            $logger->log("User's Revised Fonction Id: ".$n_fonction_ids.".");
+            $this->logger->log("User's Revised Fonction Id: ".$n_fonction_ids.".");
             $_SESSION['fonction_id'] = $n_fonction_ids;                         // Set Session Role ids
             $_SESSION['nb_roles']++;                                            // Set Session Role Number
             continue;
@@ -143,7 +152,7 @@ class IdentifyException extends CustomException {}
           $ret_val['result']     = false;
           $ret_val['error_code'] = $e->getCode();
           $ret_val['message']    = $e->getMessage();
-          $logger->log("General Error: " . $ret_val['message'] . ".");
+          $this->logger->log("General Error: " . $ret_val['message'] . ".");
           DB::rollback();
         } // End Inner Try Block
         continue;
@@ -152,12 +161,12 @@ class IdentifyException extends CustomException {}
       $ret_val['result']     = false;
       $ret_val['error_code'] = $e->getCode();
       $ret_val['message']    = $e->getMessage();
-      $logger->log("Exception: " . $ret_val['message'] . ".");
+      $this->logger->log("Exception: " . $ret_val['message'] . ".");
     } // End Outer Try Block
 
-    $logger->log("Sucessfully Finished User Role Verification. result => " . ($ret_val['result'] ? "True" : "False") . ", error_code => " . $ret_val['error_code'] . " ]");
-    $logger->log("*************************************************************************");
-    unset($logger);
+    $this->logger->log("Sucessfully Finished User Role Verification. result => " . ($ret_val['result'] ? "True" : "False") . ", error_code => " . $ret_val['error_code'] . " ]");
+    $this->logger->log("*************************************************************************");
+    unset($this->logger);
     return $ret_val;
   }
 
@@ -256,7 +265,7 @@ class IdentifyException extends CustomException {}
     return $ret_val;
   }
 
-  function setupDbConnection () {
+  private static function setupDbConnection () {
     $ret_val                   = array( 'result' => true, 'error_code' => 1, 'message' => 'Successfully setup Connection Requirements.');
     try {
       require $_SESSION['settings']['cpassman_dir'].'/includes/config/settings.php';
@@ -276,4 +285,5 @@ class IdentifyException extends CustomException {}
     } // End Try Block
     return $ret_val;
   }
+}
 ?>

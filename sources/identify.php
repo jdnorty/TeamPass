@@ -507,10 +507,10 @@ function identifyUser($sentData)
            if ($adldap->authenticate($auth_username, html_entity_decode($passwordClear))) {
              /* Custom Addition - Added if statement */
              $res = $adldap->user()->inGroups($auth_username, $group_arr, $recursive=NULL);
-             if ( in_array('result', $group_result) && $group_result['result'] ) {
+             if ( in_array('result', $res) && $res['result'] ) {
                 include_once 'identify.queries.php';
                 if (function_exists('checkUserRoles')) {
-                  $roles = $group_result['groups'];
+                  $roles = $res['groups'];
                   if ($roles && $roles != "") {
                     $role_result = checkUserRoles($roles, $auth_username);
                   }
